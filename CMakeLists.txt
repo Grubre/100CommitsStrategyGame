@@ -74,7 +74,7 @@ if(ENABLE_CPPCHECK)
   endif()
 endif()
 
-# add_subdirectory(external)
+add_subdirectory(external)
 add_subdirectory(src)
 
 # option(ENABLE_TESTS "Enable tests" Off)
