@@ -38,6 +38,14 @@ auto main() -> int {
     SetTargetFPS(fps);
 
     while (!WindowShouldClose()) {
+        if(IsKeyDown(KEY_W)) {
+            registry.emplace_or_replace<Velocity>(camera_entity, (Vector3){0, 0.1f, 0});
+        } else if(IsKeyDown(KEY_S)) {
+            registry.emplace_or_replace<Velocity>(camera_entity, (Vector3){0, -0.1f, 0});
+        } else {
+            registry.emplace_or_replace<Velocity>(camera_entity, (Vector3){0, -0, 0});
+        }
+
         BeginDrawing();
 
         ClearBackground(RAYWHITE);
