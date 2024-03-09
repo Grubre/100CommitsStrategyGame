@@ -1,19 +1,68 @@
 #include "raylib.h"
 #include "raymath.h"
 #include <entt.hpp>
-#include <iostream>
 
 using Velocity = Vector3;
 
-void update_camera_position(entt::registry &registry) {
-    auto view = registry.view<Camera3D, Velocity>();
+struct Movement {
+    Vector3 velocity;
+    float speed;
+};
+
+void handle_camera_input(entt::registry &registry) {
+    auto view = registry.view<Camera3D, Movement>();
     for (auto entity : view) {
-        auto &velocity = view.get<Velocity>(entity);
-        auto &camera = view.get<Camera3D>(entity);
-        // print the camera velocity
-        std::cout << "Camera velocity: " << velocity.x << ", " << velocity.y << ", " << velocity.z << std::endl;
-        camera.position = Vector3Add(camera.position, {velocity.x, velocity.y, 0});
+        auto &movement = view.get<Movement>(entity);
+        if (IsKeyDown(KEY_W)) {
+            movement.velocity.x -= 1.f;
+            movement.velocity.z -= 1.f;
+        }
+        if (IsKeyDown(KEY_S)) {
+            movement.velocity.x += 1.f;
+            movement.velocity.z += 1.f;
+        }
+        if (IsKeyDown(KEY_A)) {
+            movement.velocity.x -= 1.f;
+            movement.velocity.z += 1.f;
+        }
+        if (IsKeyDown(KEY_D)) {
+            movement.velocity.x += 1.f;
+            movement.velocity.z -= 1.f;
+        }
     }
+}
+
+void update_movement(entt::registry &registry) {
+    auto view = registry.view<Movement>();
+    for (auto entity : view) {
+        auto &movement = view.get<Movement>(entity);
+        movement.velocity = Vector3Normalize(movement.velocity);
+        movement.velocity = Vector3Scale(movement.velocity, movement.speed);
+    }
+}
+
+void handle_input(entt::registry &registry) { handle_camera_input(registry); }
+
+void update_camera_position(entt::registry &registry) {
+    auto view = registry.view<Camera3D, Movement>();
+    for (auto entity : view) {
+        auto &movement = view.get<Movement>(entity);
+        auto &camera = view.get<Camera3D>(entity);
+        camera.position = Vector3Add(camera.position, {movement.velocity.x, movement.velocity.y, movement.velocity.z});
+        camera.target = Vector3Add(camera.target, {movement.velocity.x, movement.velocity.y, movement.velocity.z});
+        movement.velocity = {0, 0, 0};
+    }
+}
+
+auto create_camera(entt::registry &registry) -> entt::entity {
+    auto entity = registry.create();
+    registry.emplace<Camera3D>(entity, Camera3D{.position = Vector3{15.0f, 25.0f, 15.0f},
+                                                .target = Vector3{0.0f, 0.0f, 0.0f},
+                                                .up = Vector3{0.0f, 1.0f, 0.0f},
+                                                .fovy = 45.0f,
+                                                .projection = CAMERA_PERSPECTIVE});
+    registry.emplace<Movement>(entity, Movement{.velocity = {0, 0, 0}, .speed = 1.0f});
+    return entity;
 }
 
 auto main() -> int {
@@ -25,25 +74,15 @@ auto main() -> int {
 
     Vector3 cubePosition = {0.0f, 0.0f, 0.0f};
 
-    auto camera_entity = registry.create();
-    registry.emplace<Camera3D>(camera_entity, Camera3D{.position = Vector3{0.0f, 10.0f, 10.0f},
-                                                       .target = Vector3{0.0f, 0.0f, 0.0f},
-                                                       .up = Vector3{0.0f, 1.0f, 0.0f},
-                                                       .fovy = 45.0f,
-                                                       .projection = CAMERA_PERSPECTIVE});
+    auto camera_entity = create_camera(registry);
 
     InitWindow(screen_width, screen_height, "Hello World!");
-
     SetTargetFPS(fps);
 
     while (!WindowShouldClose()) {
-        if (IsKeyDown(KEY_W)) {
-            registry.emplace_or_replace<Velocity>(camera_entity, (Vector3){0, 0.1f, 0});
-        } else if (IsKeyDown(KEY_S)) {
-            registry.emplace_or_replace<Velocity>(camera_entity, (Vector3){0, -0.1f, 0});
-        } else {
-            registry.emplace_or_replace<Velocity>(camera_entity, (Vector3){0, -0, 0});
-        }
+        handle_input(registry);
+
+        update_movement(registry);
 
         update_camera_position(registry);
 
@@ -57,7 +96,7 @@ auto main() -> int {
         DrawCube(cubePosition, 2.0f, 2.0f, 2.0f, RED);
         DrawCubeWires(cubePosition, 2.0f, 2.0f, 2.0f, MAROON);
 
-        DrawGrid(10, 1.0f);
+        DrawGrid(100, 1.0f);
 
         EndMode3D();
 
