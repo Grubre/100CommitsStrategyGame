@@ -2,12 +2,7 @@
 #include "raymath.h"
 #include <entt.hpp>
 
-using Velocity = Vector3;
-
-struct Movement {
-    Vector3 velocity;
-    float speed;
-};
+#include "common_components.hpp"
 
 void handle_camera_input(entt::registry &registry) {
     auto view = registry.view<Camera3D, Movement>();
@@ -29,6 +24,10 @@ void handle_camera_input(entt::registry &registry) {
             movement.velocity.x += 1.f;
             movement.velocity.z -= 1.f;
         }
+        const auto scroll = GetMouseWheelMove() * 1.5f;
+        movement.velocity.x -= scroll;
+        movement.velocity.y -= scroll;
+        movement.velocity.z -= scroll;
     }
 }
 
@@ -52,17 +51,6 @@ void update_camera_position(entt::registry &registry) {
         camera.target = Vector3Add(camera.target, {movement.velocity.x, movement.velocity.y, movement.velocity.z});
         movement.velocity = {0, 0, 0};
     }
-}
-
-auto create_camera(entt::registry &registry) -> entt::entity {
-    auto entity = registry.create();
-    registry.emplace<Camera3D>(entity, Camera3D{.position = Vector3{15.0f, 25.0f, 15.0f},
-                                                .target = Vector3{0.0f, 0.0f, 0.0f},
-                                                .up = Vector3{0.0f, 1.0f, 0.0f},
-                                                .fovy = 45.0f,
-                                                .projection = CAMERA_PERSPECTIVE});
-    registry.emplace<Movement>(entity, Movement{.velocity = {0, 0, 0}, .speed = 1.0f});
-    return entity;
 }
 
 auto main() -> int {
