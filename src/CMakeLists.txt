@@ -2,7 +2,7 @@ set(EXEC_NAME "main")
 
 find_package(raylib 4.5 REQUIRED)
 
-add_executable(${EXEC_NAME} main.cpp)
+add_executable(${EXEC_NAME} main.cpp camera.cpp)
 
 set(MAIN_FLAGS ${COMPILE_FLAGS})
 
@@ -16,8 +16,8 @@ target_compile_options(${EXEC_NAME} PRIVATE ${MAIN_FLAGS})
 target_link_libraries(${EXEC_NAME} Entt raylib)
 
 # raylib OSX dependencies
-if (APPLE)
-    target_link_libraries(${PROJECT_NAME} "-framework IOKit")
-    target_link_libraries(${PROJECT_NAME} "-framework Cocoa")
-    target_link_libraries(${PROJECT_NAME} "-framework OpenGL")
+if(APPLE)
+  target_link_libraries(${PROJECT_NAME} "-framework IOKit")
+  target_link_libraries(${PROJECT_NAME} "-framework Cocoa")
+  target_link_libraries(${PROJECT_NAME} "-framework OpenGL")
 endif()

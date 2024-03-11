@@ -3,20 +3,23 @@
 
 namespace stratgame {
 
+enum class ZOOM_DIRECTION { IN, OUT, NONE };
+
 struct Camera {
     Camera3D camera3d;
     bool active;
+    float max_zoom = 100.f; // distance from target
+    float min_zoom = 10.f;  // distance from target
+    ZOOM_DIRECTION zoom = ZOOM_DIRECTION::NONE;
+
+    [[nodiscard]] auto get_zoom() const -> float { return Vector3Distance(camera3d.position, camera3d.target); }
+    [[nodiscard]] auto is_within_zoom_bounds() const -> bool {
+        return get_zoom() <= max_zoom && get_zoom() >= min_zoom;
+    }
 };
 
-auto create_camera(entt::registry &registry) -> entt::entity {
-    auto entity = registry.create();
-    registry.emplace<Camera3D>(entity, Camera3D{.position = Vector3{15.0f, 25.0f, 15.0f},
-                                                .target = Vector3{0.0f, 0.0f, 0.0f},
-                                                .up = Vector3{0.0f, 1.0f, 0.0f},
-                                                .fovy = 45.0f,
-                                                .projection = CAMERA_PERSPECTIVE});
-    registry.emplace<Movement>(entity, Movement{.velocity = {0, 0, 0}, .speed = 1.0f});
-    return entity;
-}
+auto create_camera(entt::registry &registry) -> entt::entity;
 
+void handle_camera_input(entt::registry &registry);
+void update_camera(entt::registry &registry);
 }; // namespace stratgame
