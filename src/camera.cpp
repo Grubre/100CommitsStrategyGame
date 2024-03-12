@@ -1,5 +1,6 @@
 #include "camera.hpp"
 #include <iostream>
+#include <raylib.h>
 
 namespace stratgame {
 
@@ -54,6 +55,9 @@ void update_camera(entt::registry &registry) {
         auto &camera_component = view.get<stratgame::Camera>(entity);
         auto &camera = camera_component.camera3d;
 
+        const auto delta_time = GetFrameTime();
+        const auto scaled_velocity = Vector3Scale(movement.velocity, delta_time * 50.f);
+
         auto old_position = camera.position;
         if (camera_component.zoom == ZOOM_DIRECTION::IN) {
             camera.position =
@@ -64,8 +68,8 @@ void update_camera(entt::registry &registry) {
         }
 
         camera.position = camera_component.is_within_zoom_bounds() ? camera.position : old_position;
-        camera.position = Vector3Add(camera.position, {movement.velocity.x, movement.velocity.y, movement.velocity.z});
-        camera.target = Vector3Add(camera.target, {movement.velocity.x, movement.velocity.y, movement.velocity.z});
+        camera.position = Vector3Add(camera.position, scaled_velocity);
+        camera.target = Vector3Add(camera.target, scaled_velocity);
 
         movement.velocity = {0, 0, 0};
         camera_component.zoom = ZOOM_DIRECTION::NONE;
