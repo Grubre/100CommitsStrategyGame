@@ -1,8 +1,9 @@
+#include "SimplexNoise.h"
 #include "camera.hpp"
 #include "raylib.h"
 #include "raymath.h"
 #include <entt.hpp>
-#include "SimplexNoise.h"
+#include <iostream>
 #include <span>
 
 #include "common_components.hpp"
@@ -80,13 +81,16 @@ auto main() -> int {
             const auto index = i * cols + j;
             const auto x = static_cast<float>(j) / static_cast<float>(cols);
             const auto y = static_cast<float>(i) / static_cast<float>(rows);
-            heights[index] = noise.fractal(10, x, y) * 5;
+            heights[index] = noise.fractal(10, x, y);
+            std::cout << heights[index] << std::endl;
         }
     }
 
     auto terrain_mesh = generate_terrain_mesh(rows, cols, heights, 0.5f);
 
     auto terrain = LoadModelFromMesh(terrain_mesh);
+
+    auto terrain_shader = LoadShader("../resources/shaders/terrain.vert", "../resources/shaders/terrain.frag");
 
     while (!WindowShouldClose()) {
         handle_input(registry);
@@ -102,10 +106,13 @@ auto main() -> int {
         const auto &camera = registry.get<stratgame::Camera>(camera_entity);
         BeginMode3D(camera.camera3d);
 
+        auto shader_backup = terrain.materials[0].shader;
+        terrain.materials[0].shader = terrain_shader;
         DrawModel(terrain, {0, 0, 0}, 1.0f, WHITE);
+        terrain.materials[0].shader = shader_backup;
 
         // draw terrain wireframe
-        DrawModelWires(terrain, {0, 0, 0}, 1.0f, BLACK);
+        DrawModelWires(terrain, {0, 0, 0}, 1.0f, Fade(LIGHTGRAY, 0.6f));
 
         EndMode3D();
 
@@ -113,6 +120,9 @@ auto main() -> int {
 
         EndDrawing();
     }
+
+    UnloadModel(terrain);
+    CloseWindow();
 
     return 0;
 }

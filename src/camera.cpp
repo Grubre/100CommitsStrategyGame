@@ -41,6 +41,13 @@ void handle_camera_input(entt::registry &registry) {
 
         auto &camera_component = view.get<stratgame::Camera>(entity);
 
+        if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
+            auto mouse_delta = GetMouseDelta();
+            mouse_delta = Vector2Rotate(mouse_delta, -45.f);
+            movement.velocity.x -= mouse_delta.x;
+            movement.velocity.z -= mouse_delta.y;
+        }
+
         const auto scroll = GetMouseWheelMove();
         camera_component.zoom = scroll > 0   ? ZOOM_DIRECTION::IN
                                 : scroll < 0 ? ZOOM_DIRECTION::OUT
