@@ -2,7 +2,7 @@
 #include "raylib.h"
 #include "raymath.h"
 #include <entt.hpp>
-#include <iostream>
+#include "SimplexNoise.h"
 #include <span>
 
 #include "common_components.hpp"
@@ -18,7 +18,8 @@ void update_movement(entt::registry &registry) {
 
 void handle_input(entt::registry &registry) { stratgame::handle_camera_input(registry); }
 
-auto generate_terrain(uint32_t rows, uint32_t cols, const std::span<const float> heights, float dist_between_vertices = 2.0f) -> Mesh {
+auto generate_terrain_mesh(uint32_t rows, uint32_t cols, const std::span<const float> heights,
+                           float dist_between_vertices = 2.0f) -> Mesh {
     assert(static_cast<unsigned long>(rows * cols) == heights.size());
 
     auto mesh = Mesh();
@@ -56,8 +57,8 @@ auto generate_terrain(uint32_t rows, uint32_t cols, const std::span<const float>
 }
 
 auto main() -> int {
-    const int screen_width = 800;
-    const int screen_height = 450;
+    const int screen_width = 1920;
+    const int screen_height = 1080;
     const int fps = 60;
 
     entt::registry registry;
@@ -66,11 +67,24 @@ auto main() -> int {
 
     InitWindow(screen_width, screen_height, "Hello World!");
     SetTargetFPS(fps);
+    SetConfigFlags(FLAG_MSAA_4X_HINT);
 
-    constexpr auto rows = 10u;
-    constexpr auto cols = 10u;
-    constexpr auto heights = std::array<float, rows * cols>{0.0f};
-    auto terrain_mesh = generate_terrain(rows,cols, heights, 2.0f);
+    constexpr auto rows = 100u;
+    constexpr auto cols = 100u;
+    auto heights = std::array<float, rows * cols>{};
+
+    const auto noise = SimplexNoise();
+
+    for (uint32_t i = 0; i < rows; i++) {
+        for (uint32_t j = 0; j < cols; j++) {
+            const auto index = i * cols + j;
+            const auto x = static_cast<float>(j) / static_cast<float>(cols);
+            const auto y = static_cast<float>(i) / static_cast<float>(rows);
+            heights[index] = noise.fractal(10, x, y) * 5;
+        }
+    }
+
+    auto terrain_mesh = generate_terrain_mesh(rows, cols, heights, 0.5f);
 
     auto terrain = LoadModelFromMesh(terrain_mesh);
 
@@ -91,7 +105,7 @@ auto main() -> int {
         DrawModel(terrain, {0, 0, 0}, 1.0f, WHITE);
 
         // draw terrain wireframe
-        DrawModelWires(terrain, {0, 0, 0}, 1.0f, Fade(LIGHTGRAY, 0.5f));
+        DrawModelWires(terrain, {0, 0, 0}, 1.0f, BLACK);
 
         EndMode3D();
 
