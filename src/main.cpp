@@ -74,6 +74,8 @@ auto main() -> int {
     constexpr auto cols = 100u;
     auto heights = std::array<float, rows * cols>{};
 
+    auto height_scale = 5.f;
+
     const auto noise = SimplexNoise();
 
     for (uint32_t i = 0; i < rows; i++) {
@@ -81,8 +83,7 @@ auto main() -> int {
             const auto index = i * cols + j;
             const auto x = static_cast<float>(j) / static_cast<float>(cols);
             const auto y = static_cast<float>(i) / static_cast<float>(rows);
-            heights[index] = noise.fractal(10, x, y);
-            std::cout << heights[index] << std::endl;
+            heights[index] = noise.fractal(10, x, y) * height_scale;
         }
     }
 
@@ -91,6 +92,15 @@ auto main() -> int {
     auto terrain = LoadModelFromMesh(terrain_mesh);
 
     auto terrain_shader = LoadShader("../resources/shaders/terrain.vert", "../resources/shaders/terrain.frag");
+
+    auto yellow_threshold_loc = GetShaderLocation(terrain_shader, "yellow_threshold");
+    float yellow_threshold = 0.02f * height_scale;
+    SetShaderValue(terrain_shader, yellow_threshold_loc, &yellow_threshold, SHADER_UNIFORM_FLOAT);
+
+    auto white_threshold_loc = GetShaderLocation(terrain_shader, "white_threshold");
+    float white_threshold = 0.7f * height_scale;
+    SetShaderValue(terrain_shader, white_threshold_loc, &white_threshold, SHADER_UNIFORM_FLOAT);
+
 
     while (!WindowShouldClose()) {
         handle_input(registry);
