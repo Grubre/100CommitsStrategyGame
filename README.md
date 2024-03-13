@@ -8,3 +8,8 @@ cd build
 cmake ..
 cmake --build .
 ```
+
+### External libraries used
+- [raylib](https://github.com/raysan5/raylib)
+- [entt](https://github.com/skypjack/entt)
+- [SimplexNoise](https://github.com/SRombauts/SimplexNoise)
