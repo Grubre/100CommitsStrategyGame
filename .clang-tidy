@@ -14,7 +14,8 @@ Checks: "*,
         -cppcoreguidelines-non-private-member-variables-in-classes,
         -misc-non-private-member-variables-in-classes,
         -readability-uppercase-literal-suffix,
-        -hicpp-uppercase-literal-suffix
+        -hicpp-uppercase-literal-suffix,
+        -readability-identifier-length
 "
 WarningsAsErrors: ''
 HeaderFilterRegex: ''

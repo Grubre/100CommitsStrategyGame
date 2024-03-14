@@ -83,7 +83,7 @@ auto main() -> int {
             const auto index = i * cols + j;
             const auto x = static_cast<float>(j) / static_cast<float>(cols);
             const auto y = static_cast<float>(i) / static_cast<float>(rows);
-            heights[index] = noise.fractal(10, x, y) * height_scale;
+            heights[index] = noise.fractal(1, x, y) * height_scale;
         }
     }
 
@@ -100,7 +100,6 @@ auto main() -> int {
     auto white_threshold_loc = GetShaderLocation(terrain_shader, "white_threshold");
     float white_threshold = 0.7f * height_scale;
     SetShaderValue(terrain_shader, white_threshold_loc, &white_threshold, SHADER_UNIFORM_FLOAT);
-
 
     while (!WindowShouldClose()) {
         handle_input(registry);
