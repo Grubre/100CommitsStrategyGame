@@ -1,5 +1,4 @@
 #include "camera.hpp"
-#include <iostream>
 #include <raylib.h>
 
 namespace stratgame {

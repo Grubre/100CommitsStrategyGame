@@ -1,10 +1,8 @@
-#include "SimplexNoise.h"
 #include "camera.hpp"
 #include "drawing.hpp"
 #include "raylib.h"
 #include "raymath.h"
 #include <entt.hpp>
-#include <iostream>
 
 #include "common_components.hpp"
 #include "terrain.hpp"

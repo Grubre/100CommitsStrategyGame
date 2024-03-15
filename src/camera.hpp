@@ -6,8 +6,8 @@ namespace stratgame {
 enum class ZOOM_DIRECTION { IN, OUT, NONE };
 
 struct Camera {
-    Camera3D camera3d;
-    bool active;
+    Camera3D camera3d{};
+    bool active{};
     float max_zoom = 100.f; // distance from target
     float min_zoom = 10.f;  // distance from target
     float rotation = 7 * PI;

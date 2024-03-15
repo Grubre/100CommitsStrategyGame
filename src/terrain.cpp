@@ -14,27 +14,27 @@ auto generate_terrain_mesh(uint32_t rows, uint32_t cols, const std::span<const f
 
     mesh.triangleCount = static_cast<int>((rows - 1u) * (cols - 1u) * 2u);
     mesh.vertexCount = static_cast<int>(rows * cols);
-    mesh.vertices = (float *)MemAlloc(mesh.vertexCount * 3 * sizeof(float));
-    mesh.indices = (unsigned short *)MemAlloc(mesh.triangleCount * 3 * sizeof(unsigned short));
+    mesh.vertices = static_cast<float *>(MemAlloc(static_cast<unsigned int>(mesh.vertexCount* 3) * sizeof(float)));
+    mesh.indices = static_cast<unsigned short*>(MemAlloc(static_cast<unsigned int>(mesh.triangleCount * 3) * sizeof(unsigned short)));
 
-    for (uint32_t i = 0; i < rows; i++) {
-        for (uint32_t j = 0; j < cols; j++) {
+    for (auto i = 0llu; i < rows; i++) {
+        for (auto j = 0llu; j < cols; j++) {
             const auto index = i * cols + j;
-            mesh.vertices[index * 3] = j * dist_between_vertices;
+            mesh.vertices[index * 3] = static_cast<float>(j) * dist_between_vertices;
             mesh.vertices[index * 3 + 1] = heights[index];
-            mesh.vertices[index * 3 + 2] = i * dist_between_vertices;
+            mesh.vertices[index * 3 + 2] = static_cast<float>(i) * dist_between_vertices;
         }
     }
 
-    auto k = 0u;
+    auto k = 0;
     for (auto i = 0u; i < rows - 1; i++) {
         for (auto j = 0u; j < cols - 1; j++) {
-            mesh.indices[k] = i * cols + j;
-            mesh.indices[k + 1] = (i + 1) * cols + j;
-            mesh.indices[k + 2] = (i + 1) * cols + (j + 1);
-            mesh.indices[k + 3] = i * cols + j;
-            mesh.indices[k + 4] = (i + 1) * cols + (j + 1);
-            mesh.indices[k + 5] = i * cols + (j + 1);
+            mesh.indices[k] = static_cast<unsigned short>(i * cols + j);
+            mesh.indices[k + 1] = static_cast<unsigned short>((i + 1) * cols + j);
+            mesh.indices[k + 2] = static_cast<unsigned short>((i + 1) * cols + (j + 1));
+            mesh.indices[k + 3] = static_cast<unsigned short>(i * cols + j);
+            mesh.indices[k + 4] = static_cast<unsigned short>((i + 1) * cols + (j + 1));
+            mesh.indices[k + 5] = static_cast<unsigned short>(i * cols + (j + 1));
             k += 6; // next quad
         }
     }
@@ -45,7 +45,7 @@ auto generate_terrain_mesh(uint32_t rows, uint32_t cols, const std::span<const f
 }
 
 auto generate_terrain_model(uint32_t rows, uint32_t cols) -> Model {
-    auto heights = std::vector<float>(rows * cols);
+    auto heights = std::vector<float>(static_cast<uint32_t>(rows * cols));
 
     auto height_scale = 5.f;
 

@@ -15,7 +15,11 @@ Checks: "*,
         -misc-non-private-member-variables-in-classes,
         -readability-uppercase-literal-suffix,
         -hicpp-uppercase-literal-suffix,
-        -readability-identifier-length
+        -readability-identifier-length,
+        -cppcoreguidelines-avoid-magic-numbers,
+        -readability-magic-numbers,
+        -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+        -cert-dcl16-c
 "
 WarningsAsErrors: ''
 HeaderFilterRegex: ''
