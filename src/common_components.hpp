@@ -15,6 +15,4 @@ struct Movement {
 struct Transform {
     Vector3 position;
 };
-
-using Position = Vector3;
 }; // namespace stratgame

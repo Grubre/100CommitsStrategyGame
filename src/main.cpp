@@ -5,7 +5,6 @@
 #include "raymath.h"
 #include <entt.hpp>
 #include <iostream>
-#include <span>
 
 #include "common_components.hpp"
 #include "terrain.hpp"
@@ -34,7 +33,7 @@ auto main() -> int {
     SetTargetFPS(fps);
     SetConfigFlags(FLAG_MSAA_4X_HINT);
 
-    auto terrain = stratgame::generate_terrain_model(100, 100);
+    auto terrain = stratgame::generate_terrain_model(50, 50);
 
     auto terrain_shader = stratgame::generate_terrain_shader("../resources/shaders/terrain.vert",
                                                              "../resources/shaders/terrain.frag", 5.0f);
