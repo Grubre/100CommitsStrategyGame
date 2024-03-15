@@ -1,5 +1,6 @@
 #include "SimplexNoise.h"
 #include "camera.hpp"
+#include "drawing.hpp"
 #include "raylib.h"
 #include "raymath.h"
 #include <entt.hpp>
@@ -38,6 +39,11 @@ auto main() -> int {
     auto terrain_shader = stratgame::generate_terrain_shader("../resources/shaders/terrain.vert",
                                                              "../resources/shaders/terrain.frag", 5.0f);
 
+    auto terrain_entity = registry.create();
+    registry.emplace<stratgame::ModelComponent>(terrain_entity, terrain, Vector3{0, 0, 0});
+    registry.emplace<stratgame::ShaderComponent>(terrain_entity, terrain_shader);
+    registry.emplace<stratgame::DrawModelWireframeComponent>(terrain_entity);
+
     while (!WindowShouldClose()) {
         handle_input(registry);
 
@@ -52,12 +58,9 @@ auto main() -> int {
         const auto &camera = registry.get<stratgame::Camera>(camera_entity);
         BeginMode3D(camera.camera3d);
 
-        auto shader_backup = terrain.materials[0].shader;
-        terrain.materials[0].shader = terrain_shader;
-        DrawModel(terrain, {0, 0, 0}, 1.0f, WHITE);
-        terrain.materials[0].shader = shader_backup;
+        stratgame::draw_models(registry);
 
-        DrawModelWires(terrain, {0, 0, 0}, 1.0f, Fade(LIGHTGRAY, 0.6f));
+        stratgame::draw_model_wireframes(registry);
 
         DrawLine3D({-1000, 0, 0}, {1000, 0, 0}, RED);
         DrawLine3D({0, 0, -1000}, {0, 0, 1000}, BLUE);
