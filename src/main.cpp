@@ -23,7 +23,7 @@ auto generate_terrain_mesh(uint32_t rows, uint32_t cols, const std::span<const f
                            float dist_between_vertices = 2.0f) -> Mesh {
     assert(static_cast<unsigned long>(rows * cols) == heights.size());
 
-    auto mesh = Mesh();
+    auto mesh = Mesh{};
 
     mesh.triangleCount = static_cast<int>((rows - 1u) * (cols - 1u) * 2u);
     mesh.vertexCount = static_cast<int>(rows * cols);
@@ -39,9 +39,9 @@ auto generate_terrain_mesh(uint32_t rows, uint32_t cols, const std::span<const f
         }
     }
 
-    int k = 0;
-    for (int i = 0; i < rows - 1; i++) {
-        for (int j = 0; j < cols - 1; j++) {
+    auto k = 0u;
+    for (auto i = 0u; i < rows - 1; i++) {
+        for (auto j = 0u; j < cols - 1; j++) {
             mesh.indices[k] = i * cols + j;
             mesh.indices[k + 1] = (i + 1) * cols + j;
             mesh.indices[k + 2] = (i + 1) * cols + (j + 1);
@@ -120,8 +120,10 @@ auto main() -> int {
         DrawModel(terrain, {0, 0, 0}, 1.0f, WHITE);
         terrain.materials[0].shader = shader_backup;
 
-        // draw terrain wireframe
         DrawModelWires(terrain, {0, 0, 0}, 1.0f, Fade(LIGHTGRAY, 0.6f));
+
+        DrawLine3D({-1000, 0, 0}, {1000, 0, 0}, RED);
+        DrawLine3D({0, 0, -1000}, {0, 0, 1000}, BLUE);
 
         EndMode3D();
 

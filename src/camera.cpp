@@ -22,28 +22,26 @@ void handle_camera_input(entt::registry &registry) {
     auto view = registry.view<stratgame::Camera, stratgame::Movement>();
     for (auto entity : view) {
         auto &movement = view.get<stratgame::Movement>(entity);
+        auto &camera_component = view.get<stratgame::Camera>(entity);
         if (IsKeyDown(KEY_W)) {
             movement.velocity.x -= 1.f;
-            movement.velocity.z -= 1.f;
         }
         if (IsKeyDown(KEY_S)) {
             movement.velocity.x += 1.f;
-            movement.velocity.z += 1.f;
         }
         if (IsKeyDown(KEY_A)) {
-            movement.velocity.x -= 1.f;
             movement.velocity.z += 1.f;
         }
         if (IsKeyDown(KEY_D)) {
-            movement.velocity.x += 1.f;
             movement.velocity.z -= 1.f;
         }
-
-        auto &camera_component = view.get<stratgame::Camera>(entity);
+        auto xz_velocity = Vector2{movement.velocity.x, movement.velocity.z};
+        xz_velocity = Vector2Rotate(xz_velocity, camera_component.rotation);
+        movement.velocity = {xz_velocity.x, movement.velocity.y, xz_velocity.y};
 
         if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
             auto mouse_delta = GetMouseDelta();
-            mouse_delta = Vector2Rotate(mouse_delta, -45.f);
+            mouse_delta = Vector2Rotate(mouse_delta, -camera_component.rotation);
             movement.velocity.x -= mouse_delta.x;
             movement.velocity.z -= mouse_delta.y;
         }
