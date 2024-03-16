@@ -2,19 +2,11 @@
 #include "drawing.hpp"
 #include "raylib.h"
 #include "raymath.h"
+#include "systems.hpp"
 #include <entt.hpp>
 
 #include "common_components.hpp"
 #include "terrain.hpp"
-
-void update_movement(entt::registry &registry) {
-    auto view = registry.view<stratgame::Movement>();
-    for (auto entity : view) {
-        auto &movement = view.get<stratgame::Movement>(entity);
-        movement.velocity = Vector3Normalize(movement.velocity);
-        movement.velocity = Vector3Scale(movement.velocity, movement.speed);
-    }
-}
 
 void handle_input(entt::registry &registry) { stratgame::handle_camera_input(registry); }
 
@@ -44,7 +36,7 @@ auto main() -> int {
     while (!WindowShouldClose()) {
         handle_input(registry);
 
-        update_movement(registry);
+        stratgame::update_movement(registry);
 
         stratgame::update_camera(registry);
 

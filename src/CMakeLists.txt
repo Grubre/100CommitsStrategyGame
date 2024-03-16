@@ -2,7 +2,8 @@ set(EXEC_NAME "main")
 
 find_package(raylib 4.5 REQUIRED)
 
-add_executable(${EXEC_NAME} main.cpp camera.cpp terrain.cpp drawing.cpp)
+add_executable(${EXEC_NAME} main.cpp camera.cpp terrain.cpp drawing.cpp
+                            systems.cpp)
 
 set(MAIN_FLAGS ${COMPILE_FLAGS})
 
