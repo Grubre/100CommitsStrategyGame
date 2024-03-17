@@ -9,6 +9,10 @@ cmake ..
 cmake --build .
 ```
 
+### Controls:
+- `wasd` - camera movement
+- `arrows` - camera angle
+
 ### External libraries used
 - [raylib](https://github.com/raysan5/raylib)
 - [entt](https://github.com/skypjack/entt)
