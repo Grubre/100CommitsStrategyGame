@@ -33,6 +33,9 @@ auto main() -> int {
     registry.emplace<stratgame::ShaderComponent>(terrain_entity, terrain_shader);
     registry.emplace<stratgame::DrawModelWireframeComponent>(terrain_entity);
 
+    // Movement depends on Transform
+    registry.on_construct<stratgame::Movement>().connect<&entt::registry::emplace_or_replace<stratgame::Transform>>();
+
     while (!WindowShouldClose()) {
         handle_input(registry);
 

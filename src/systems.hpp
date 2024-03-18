@@ -3,5 +3,4 @@
 
 namespace stratgame {
 void update_movement(entt::registry &registry);
-
 };
