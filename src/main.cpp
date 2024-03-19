@@ -17,12 +17,12 @@ auto main() -> int {
 
     entt::registry registry;
 
-    const auto camera_entity = stratgame::create_camera(registry);
+    SetConfigFlags(FLAG_MSAA_4X_HINT);
+    SetConfigFlags(FLAG_VSYNC_HINT);
 
     InitWindow(screen_width, screen_height, "Hello World!");
-    SetTargetFPS(fps);
-    SetConfigFlags(FLAG_MSAA_4X_HINT);
 
+    const auto camera_entity = stratgame::create_camera(registry);
     auto terrain = stratgame::generate_terrain_model(50, 50);
 
     auto terrain_shader = stratgame::generate_terrain_shader("../resources/shaders/terrain.vert",

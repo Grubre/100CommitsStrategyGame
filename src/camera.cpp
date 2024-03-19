@@ -1,4 +1,5 @@
 #include "camera.hpp"
+#include <iostream>
 #include <raylib.h>
 
 namespace stratgame {
@@ -19,42 +20,46 @@ auto create_camera(entt::registry &registry) -> entt::entity {
 }
 
 void handle_camera_input(entt::registry &registry) {
-    auto view = registry.view<stratgame::Camera, stratgame::Movement>();
+    auto view = registry.view<stratgame::Camera>();
     for (auto entity : view) {
-        auto &movement = view.get<stratgame::Movement>(entity);
-        auto &camera_component = view.get<stratgame::Camera>(entity);
+        auto &camera = view.get<stratgame::Camera>(entity);
+
+        const auto delta_time = GetFrameTime();
+        const auto rotation_amount = 0.05f * delta_time * camera.rotation_speed;
         if (IsKeyDown(KEY_W)) {
-            movement.velocity.x -= 1.f;
+            camera.velocity.x -= 1.f;
         }
         if (IsKeyDown(KEY_S)) {
-            movement.velocity.x += 1.f;
+            camera.velocity.x += 1.f;
         }
         if (IsKeyDown(KEY_A)) {
-            movement.velocity.z += 1.f;
+            camera.velocity.y += 1.f;
         }
         if (IsKeyDown(KEY_D)) {
-            movement.velocity.z -= 1.f;
+            camera.velocity.y -= 1.f;
         }
         if (IsKeyDown(KEY_LEFT)) {
-            camera_component.rotation += 0.05f;
+            camera.rotation += rotation_amount;
         }
         if (IsKeyDown(KEY_RIGHT)) {
-            camera_component.rotation -= 0.05f;
+            camera.rotation -= rotation_amount;
         }
 
-        auto xz_velocity = Vector2{movement.velocity.x, movement.velocity.z};
-        xz_velocity = Vector2Rotate(xz_velocity, camera_component.rotation);
-        movement.velocity = {xz_velocity.x, movement.velocity.y, xz_velocity.y};
+        camera.velocity = Vector2Rotate(camera.velocity, camera.rotation);
 
         if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
             auto mouse_delta = GetMouseDelta();
-            mouse_delta = Vector2Rotate(mouse_delta, -camera_component.rotation);
-            movement.velocity.x -= mouse_delta.x;
-            movement.velocity.z -= mouse_delta.y;
+            mouse_delta = Vector2Rotate(mouse_delta, -camera.rotation);
+            camera.velocity.x -= mouse_delta.x;
+            camera.velocity.y -= mouse_delta.y;
         }
 
+        camera.velocity = Vector2Normalize(camera.velocity);
+        camera.velocity = Vector2Scale(camera.velocity, delta_time);
+        camera.velocity = Vector2Scale(camera.velocity, camera.speed);
+
         const auto scroll = GetMouseWheelMove();
-        camera_component.zoom = scroll > 0   ? ZOOM_DIRECTION::IN
+        camera.zoom = scroll > 0   ? ZOOM_DIRECTION::IN
                                 : scroll < 0 ? ZOOM_DIRECTION::OUT
                                              : ZOOM_DIRECTION::NONE;
     }
@@ -63,13 +68,9 @@ void handle_camera_input(entt::registry &registry) {
 void update_camera(entt::registry &registry) {
     auto view = registry.view<stratgame::Camera, stratgame::Transform, stratgame::Movement>();
     for (auto entity : view) {
-        auto &movement = view.get<stratgame::Movement>(entity);
         auto &transform = view.get<stratgame::Transform>(entity);
         auto &camera_component = view.get<stratgame::Camera>(entity);
         auto &camera = camera_component.camera3d;
-
-        const auto delta_time = GetFrameTime();
-        const auto scaled_velocity = Vector3Scale(movement.velocity, delta_time * 50.f);
 
         // check if the camera is within the zoom bounds
         auto old_position = transform.position;
@@ -82,11 +83,13 @@ void update_camera(entt::registry &registry) {
         }
         transform.position = camera_component.is_within_zoom_bounds() ? transform.position : old_position;
 
+        const auto velocity_vec3 = Vector3{camera_component.velocity.x, 0, camera_component.velocity.y};
+
         // move the target by the velocity
-        camera.target = Vector3Add(camera.target, scaled_velocity);
+        camera.target = Vector3Add(camera.target, velocity_vec3);
 
         // move the transform by the velocity
-        transform.position = Vector3Add(transform.position, scaled_velocity);
+        transform.position = Vector3Add(transform.position, velocity_vec3);
 
         // Rotate transform around the target in the xz plane
         auto xz_position = Vector2{transform.position.x, transform.position.z};
@@ -97,7 +100,7 @@ void update_camera(entt::registry &registry) {
         // set the camera position to the transform
         camera.position = {xz_position.x, transform.position.y, xz_position.y};
 
-        movement.velocity = {0, 0, 0};
+        camera_component.velocity = {0, 0};
         camera_component.zoom = ZOOM_DIRECTION::NONE;
     }
 }

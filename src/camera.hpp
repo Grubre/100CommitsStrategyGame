@@ -10,8 +10,11 @@ struct Camera {
     bool active{};
     float max_zoom = 100.f; // distance from target
     float min_zoom = 10.f;  // distance from target
-    float rotation = 7 * PI;
+    float rotation = 0.f;
     float angle = 0.f;
+    Vector2 velocity;
+    float speed = 30.0f;
+    float rotation_speed = 30.f;
     ZOOM_DIRECTION zoom = ZOOM_DIRECTION::NONE;
 
     [[nodiscard]] auto get_zoom() const -> float { return Vector3Distance(camera3d.position, camera3d.target); }
