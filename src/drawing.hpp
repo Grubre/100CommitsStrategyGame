@@ -6,7 +6,6 @@
 namespace stratgame {
 struct ModelComponent {
     Model model;
-    Vector3 position;
 };
 
 struct ShaderComponent {
