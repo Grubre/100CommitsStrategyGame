@@ -2,5 +2,5 @@
 #include <entt.hpp>
 
 namespace stratgame {
-void update_movement(entt::registry &registry);
+void update_transform(entt::registry &registry);
 };

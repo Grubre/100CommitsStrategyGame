@@ -2,12 +2,13 @@
 #include "common_components.hpp"
 
 namespace stratgame {
-void update_movement(entt::registry &registry) {
-    auto view = registry.view<stratgame::Movement>();
+void update_transform(entt::registry &registry) {
+    auto view = registry.view<const stratgame::Movement, stratgame::Transform>();
     for (auto entity : view) {
-        auto &movement = view.get<stratgame::Movement>(entity);
-        movement.velocity = Vector3Normalize(movement.velocity);
-        movement.velocity = Vector3Scale(movement.velocity, movement.speed);
+        const auto &movement = view.get<stratgame::Movement>(entity);
+        auto &transform = view.get<stratgame::Transform>(entity);
+
+        transform.position = Vector3Add(transform.position, movement.velocity);
     }
 }
 
