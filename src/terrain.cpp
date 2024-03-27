@@ -44,7 +44,7 @@ auto generate_terrain_mesh(uint32_t rows, uint32_t cols, const std::span<const f
     return mesh;
 }
 
-auto generate_terrain_model(uint32_t rows, uint32_t cols) -> Model {
+auto generate_terrain_model(uint32_t rows, uint32_t cols) -> GeneratedTerrain {
     auto heights = std::vector<float>(static_cast<uint32_t>(rows * cols));
 
     auto height_scale = 5.f;
@@ -64,7 +64,7 @@ auto generate_terrain_model(uint32_t rows, uint32_t cols) -> Model {
 
     auto terrain = LoadModelFromMesh(terrain_mesh);
 
-    return terrain;
+    return {terrain, heights};
 }
 
 auto generate_terrain_shader(const std::filesystem::path &vert_path, const std::filesystem::path &frag_path,

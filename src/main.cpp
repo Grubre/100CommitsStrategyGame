@@ -59,19 +59,24 @@ auto create_minion(entt::registry &registry, Vector2 position) -> entt::entity {
     return entity;
 }
 
+void update_minions(entt::registry &registry) {
+    auto heights = registry.view<stratgame::GeneratedTerrain::Heights>();
+}
+
 auto main() -> int {
     setup_raylib();
 
     auto registry = setup_entt();
 
     auto terrain_entity = registry.create();
-    auto terrain = stratgame::generate_terrain_model(50, 50);
+    auto [terrain, heights] = stratgame::generate_terrain_model(50, 50);
     auto terrain_shader = stratgame::generate_terrain_shader("../resources/shaders/terrain.vert",
                                                              "../resources/shaders/terrain.frag", 5.0f);
     registry.emplace<stratgame::ModelComponent>(terrain_entity, terrain);
     registry.emplace<stratgame::ShaderComponent>(terrain_entity, terrain_shader);
     registry.emplace<stratgame::Transform>(terrain_entity, Vector3{0, 0, 0});
     registry.emplace<stratgame::DrawModelWireframeComponent>(terrain_entity);
+    registry.emplace<stratgame::GeneratedTerrain::Heights>(terrain_entity, heights);
 
     const auto camera_entity = stratgame::create_camera(registry);
 
