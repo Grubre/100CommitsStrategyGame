@@ -48,9 +48,9 @@ void handle_camera_input(entt::registry &registry) {
 
         if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
             auto mouse_delta = GetMouseDelta();
-            mouse_delta = Vector2Rotate(mouse_delta, -camera.rotation);
-            camera.velocity.x -= mouse_delta.x;
-            camera.velocity.y -= mouse_delta.y;
+            mouse_delta = Vector2Rotate(mouse_delta, camera.rotation);
+            camera.velocity.x -= mouse_delta.y;
+            camera.velocity.y += mouse_delta.x;
         }
 
         camera.velocity = Vector2Normalize(camera.velocity);
@@ -58,9 +58,7 @@ void handle_camera_input(entt::registry &registry) {
         camera.velocity = Vector2Scale(camera.velocity, camera.speed);
 
         const auto scroll = GetMouseWheelMove();
-        camera.zoom = scroll > 0   ? ZOOM_DIRECTION::IN
-                                : scroll < 0 ? ZOOM_DIRECTION::OUT
-                                             : ZOOM_DIRECTION::NONE;
+        camera.zoom = scroll > 0 ? ZOOM_DIRECTION::IN : scroll < 0 ? ZOOM_DIRECTION::OUT : ZOOM_DIRECTION::NONE;
     }
 }
 
@@ -77,8 +75,8 @@ void update_camera(entt::registry &registry) {
             transform.position = Vector3Subtract(
                 transform.position, Vector3Scale(Vector3Subtract(transform.position, camera3d.target), 0.1f));
         } else if (camera.zoom == ZOOM_DIRECTION::OUT) {
-            transform.position =
-                Vector3Add(transform.position, Vector3Scale(Vector3Subtract(transform.position, camera3d.target), 0.1f));
+            transform.position = Vector3Add(transform.position,
+                                            Vector3Scale(Vector3Subtract(transform.position, camera3d.target), 0.1f));
         }
         transform.position = camera.is_within_zoom_bounds() ? transform.position : old_position;
 
