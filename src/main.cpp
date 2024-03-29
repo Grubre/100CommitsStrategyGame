@@ -1,8 +1,10 @@
 #include "camera.hpp"
 #include "drawing.hpp"
 #include "raylib.h"
+#include "raymath.h"
 #include "systems.hpp"
 #include <entt.hpp>
+#include <iostream>
 
 #include "common_components.hpp"
 #include "terrain.hpp"
@@ -28,6 +30,10 @@ struct BaseStats {
     int attack{10};
 };
 
+struct Selectable {
+    bool selected{false};
+};
+
 auto setup_entt() -> entt::registry {
     entt::registry registry;
 
@@ -39,6 +45,7 @@ auto setup_entt() -> entt::registry {
     registry.on_construct<Minion>().connect<[](entt::registry &registry, entt::entity entity) {
         registry.emplace<stratgame::Transform>(entity);
         registry.emplace<BaseStats>(entity);
+        registry.emplace<Selectable>(entity);
 
         const auto &minion = registry.get<Minion>(entity);
         auto model = LoadModelFromMesh(GenMeshSphere(1.f, 16, 16));
@@ -59,8 +66,21 @@ auto create_minion(entt::registry &registry, Vector2 position) -> entt::entity {
     return entity;
 }
 
-void update_minions(entt::registry &registry) {
-    auto heights = registry.view<stratgame::GeneratedTerrain::Heights>();
+void update_minion_heights(entt::registry &registry) {
+    const auto height_entity = registry.view<const stratgame::GeneratedTerrain::Heights>();
+    const auto heights = registry.get<stratgame::GeneratedTerrain::Heights>(*height_entity.begin());
+
+    auto minions = registry.view<Minion>();
+
+    for (auto minion : minions) {
+        auto &transform = registry.get<stratgame::Transform>(minion);
+
+        const auto x = static_cast<int>(transform.position.x);
+        const auto z = static_cast<int>(transform.position.z);
+
+        // NOTE: The +1 is because minions are temporarily spheres of radius 1
+        transform.position.y = heights[z * 50 + x] + 1.f;
+    }
 }
 
 auto main() -> int {
@@ -85,19 +105,32 @@ auto main() -> int {
     }
 
     while (!WindowShouldClose()) {
+        const auto &camera = registry.get<stratgame::Camera>(camera_entity);
         // ======================================
         // UPDATE SYSTEMS
         // ======================================
         handle_input(registry);
         stratgame::update_transform(registry);
         stratgame::update_camera(registry);
+        update_minion_heights(registry);
+
+        // spawn minion on click in world space
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+            const auto mouse_pos = GetMousePosition();
+            const auto ray = GetMouseRay(mouse_pos, camera.camera3d);
+            // check hit between terrain and ray
+            const auto hit = GetRayCollisionMesh(ray, terrain.meshes[0], terrain.transform);
+            if (hit.hit) {
+                create_minion(registry, {hit.point.x, hit.point.z});
+            }
+        }
+
         // ======================================
 
         BeginDrawing();
 
         ClearBackground(RAYWHITE);
 
-        const auto &camera = registry.get<stratgame::Camera>(camera_entity);
         BeginMode3D(camera.camera3d);
 
         // ======================================

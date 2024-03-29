@@ -56,11 +56,11 @@ auto generate_terrain_model(uint32_t rows, uint32_t cols) -> GeneratedTerrain {
             const auto index = i * cols + j;
             const auto x = static_cast<float>(j) / static_cast<float>(cols);
             const auto y = static_cast<float>(i) / static_cast<float>(rows);
-            heights[index] = noise.fractal(1, x, y) * height_scale;
+            heights[index] = noise.fractal(2, x, y) * height_scale;
         }
     }
 
-    auto terrain_mesh = generate_terrain_mesh(rows, cols, heights, 0.5f);
+    auto terrain_mesh = generate_terrain_mesh(rows, cols, heights, 1.0f);
 
     auto terrain = LoadModelFromMesh(terrain_mesh);
 
