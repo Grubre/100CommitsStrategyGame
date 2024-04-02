@@ -88,6 +88,37 @@ struct TerrainClick {
     std::optional<Vector2> position;
 };
 
+void handle_clicks(entt::registry &registry) {
+    const auto terrain_entity = registry.view<TerrainClick>().begin()[0];
+    const auto terrain = registry.get<stratgame::ModelComponent>(terrain_entity);
+    const auto camera_entity = registry.view<stratgame::Camera>().begin()[0];
+    const auto &camera = registry.get<stratgame::Camera>(camera_entity);
+
+    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || IsMouseButtonPressed(MOUSE_RIGHT_BUTTON)) {
+        const auto mouse_pos = GetMousePosition();
+        const auto ray = GetMouseRay(mouse_pos, camera.camera3d);
+        // check hit between terrain and ray
+        const auto hit = GetRayCollisionMesh(ray, terrain.model.meshes[0], terrain.model.transform);
+
+        registry.patch<TerrainClick>(terrain_entity, [&](TerrainClick &click) {
+            click.position = hit.hit ? std::optional{Vector2{hit.point.x, hit.point.z}} : std::nullopt;
+        });
+
+        auto minions = registry.view<Minion, stratgame::ModelComponent, stratgame::Transform>();
+        for (auto minion : minions) {
+            const auto &transform = registry.get<stratgame::Transform>(minion);
+
+            const auto minion_hit = GetRayCollisionSphere(ray, transform.position, 1.f);
+
+            if (minion_hit.hit) {
+                std::cout << "Minion hit!" << std::endl;
+            }
+
+            registry.patch<Selectable>(minion, [&](Selectable &selectable) { selectable.selected = minion_hit.hit; });
+        }
+    }
+}
+
 auto main() -> int {
     setup_raylib();
 
@@ -116,16 +147,7 @@ auto main() -> int {
         // ======================================
         // UPDATE SYSTEMS
         // ======================================
-        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || IsMouseButtonPressed(MOUSE_RIGHT_BUTTON)) {
-            const auto mouse_pos = GetMousePosition();
-            const auto ray = GetMouseRay(mouse_pos, camera.camera3d);
-            // check hit between terrain and ray
-            const auto hit = GetRayCollisionMesh(ray, terrain.meshes[0], terrain.transform);
-
-            registry.patch<TerrainClick>(terrain_entity, [&](TerrainClick &click) {
-                click.position = hit.hit ? std::optional{Vector2{hit.point.x, hit.point.z}} : std::nullopt;
-            });
-        }
+        handle_clicks(registry);
 
         const auto terrain_click = registry.get<TerrainClick>(terrain_entity);
         if (terrain_click.position) {
