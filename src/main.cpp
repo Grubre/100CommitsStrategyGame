@@ -5,6 +5,7 @@
 #include "systems.hpp"
 #include <entt.hpp>
 #include <iostream>
+#include <optional>
 
 #include "common_components.hpp"
 #include "terrain.hpp"
@@ -83,6 +84,41 @@ void update_minion_heights(entt::registry &registry) {
     }
 }
 
+struct TerrainClick {
+    std::optional<Vector2> position;
+};
+
+void handle_clicks(entt::registry &registry) {
+    const auto terrain_entity = registry.view<TerrainClick>().begin()[0];
+    const auto terrain = registry.get<stratgame::ModelComponent>(terrain_entity);
+    const auto camera_entity = registry.view<stratgame::Camera>().begin()[0];
+    const auto &camera = registry.get<stratgame::Camera>(camera_entity);
+
+    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || IsMouseButtonPressed(MOUSE_RIGHT_BUTTON)) {
+        const auto mouse_pos = GetMousePosition();
+        const auto ray = GetMouseRay(mouse_pos, camera.camera3d);
+        // check hit between terrain and ray
+        const auto hit = GetRayCollisionMesh(ray, terrain.model.meshes[0], terrain.model.transform);
+
+        registry.patch<TerrainClick>(terrain_entity, [&](TerrainClick &click) {
+            click.position = hit.hit ? std::optional{Vector2{hit.point.x, hit.point.z}} : std::nullopt;
+        });
+
+        auto minions = registry.view<Minion, stratgame::ModelComponent, stratgame::Transform>();
+        for (auto minion : minions) {
+            const auto &transform = registry.get<stratgame::Transform>(minion);
+
+            const auto minion_hit = GetRayCollisionSphere(ray, transform.position, 1.f);
+
+            if (minion_hit.hit) {
+                std::cout << "Minion hit!" << std::endl;
+            }
+
+            registry.patch<Selectable>(minion, [&](Selectable &selectable) { selectable.selected = minion_hit.hit; });
+        }
+    }
+}
+
 auto main() -> int {
     setup_raylib();
 
@@ -98,6 +134,8 @@ auto main() -> int {
     registry.emplace<stratgame::DrawModelWireframeComponent>(terrain_entity);
     registry.emplace<stratgame::GeneratedTerrain::Heights>(terrain_entity, heights);
 
+    registry.emplace<TerrainClick>(terrain_entity);
+
     const auto camera_entity = stratgame::create_camera(registry);
 
     for (auto i = 0; i < 10; i++) {
@@ -109,21 +147,19 @@ auto main() -> int {
         // ======================================
         // UPDATE SYSTEMS
         // ======================================
+        handle_clicks(registry);
+
+        const auto terrain_click = registry.get<TerrainClick>(terrain_entity);
+        if (terrain_click.position) {
+            if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON)) {
+                create_minion(registry, *terrain_click.position);
+            }
+        }
+
         handle_input(registry);
         stratgame::update_transform(registry);
         stratgame::update_camera(registry);
         update_minion_heights(registry);
-
-        // spawn minion on click in world space
-        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-            const auto mouse_pos = GetMousePosition();
-            const auto ray = GetMouseRay(mouse_pos, camera.camera3d);
-            // check hit between terrain and ray
-            const auto hit = GetRayCollisionMesh(ray, terrain.meshes[0], terrain.transform);
-            if (hit.hit) {
-                create_minion(registry, {hit.point.x, hit.point.z});
-            }
-        }
 
         // ======================================
 
