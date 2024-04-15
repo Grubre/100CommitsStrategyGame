@@ -51,11 +51,13 @@ auto generate_terrain_model(uint32_t rows, uint32_t cols) -> GeneratedTerrain {
 
     const auto noise = SimplexNoise();
 
+    const auto chunk_size = 48;
+
     for (uint32_t i = 0; i < rows; i++) {
         for (uint32_t j = 0; j < cols; j++) {
             const auto index = i * cols + j;
-            const auto x = static_cast<float>(j) / static_cast<float>(cols);
-            const auto y = static_cast<float>(i) / static_cast<float>(rows);
+            const auto x = static_cast<float>(j) / static_cast<float>(chunk_size);
+            const auto y = static_cast<float>(i) / static_cast<float>(chunk_size);
             heights[index] = noise.fractal(2, x, y) * height_scale;
         }
     }
