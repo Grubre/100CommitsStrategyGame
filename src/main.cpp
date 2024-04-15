@@ -22,8 +22,23 @@ void setup_raylib() {
     InitWindow(screen_width, screen_height, "Hello World!");
 }
 
+using team_color_map = std::unordered_map<int, Color>;
+void add_team(entt::registry &registry, const Color& color) {
+    static int team_id = 0;
+
+    if (team_id == 0) {
+        const auto team_color_map_entity = registry.create();
+        registry.emplace<team_color_map>(team_color_map_entity);
+    }
+
+    auto &team_colors = registry.get<team_color_map>(*registry.view<team_color_map>().begin());
+    team_colors[team_id] = color;
+
+    team_id++;
+}
+
 struct Minion {
-    Color color{RED};
+    int team_id;
 };
 
 struct BaseStats {
@@ -50,16 +65,21 @@ auto setup_entt() -> entt::registry {
 
         const auto &minion = registry.get<Minion>(entity);
         auto model = LoadModelFromMesh(GenMeshSphere(1.f, 16, 16));
-        model.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = minion.color;
+
+        const auto team_color_map_entity = registry.view<team_color_map>().begin()[0];
+        const auto &team_colors = registry.get<team_color_map>(team_color_map_entity);
+        const auto color = team_colors.at(minion.team_id);
+
+        model.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = color;
         registry.emplace<stratgame::ModelComponent>(entity, model);
     }>();
 
     return registry;
 }
 
-auto create_minion(entt::registry &registry, Vector2 position) -> entt::entity {
+auto create_minion(entt::registry &registry, Vector2 position, int team_id) -> entt::entity {
     auto entity = registry.create();
-    registry.emplace<Minion>(entity);
+    registry.emplace<Minion>(entity, team_id);
 
     auto &transform = registry.get<stratgame::Transform>(entity);
     transform.position.x = position.x;
@@ -80,7 +100,7 @@ void update_minion_heights(entt::registry &registry) {
         const auto z = static_cast<int>(transform.position.z);
 
         // NOTE: The +1 is because minions are temporarily spheres of radius 1
-        transform.position.y = heights[z * 50 + x] + 1.f;
+        transform.position.y = heights[z * 200 + x] + 1.f;
     }
 }
 
@@ -138,8 +158,11 @@ auto main() -> int {
 
     const auto camera_entity = stratgame::create_camera(registry);
 
+    add_team(registry, RED);
+    add_team(registry, BLUE);
+
     for (auto i = 0; i < 10; i++) {
-        create_minion(registry, {static_cast<float>(i * 2), static_cast<float>(i * 2)});
+        create_minion(registry, {static_cast<float>(i * 2), static_cast<float>(i * 2)}, rand() % 2);
     }
 
     while (!WindowShouldClose()) {
@@ -152,7 +175,7 @@ auto main() -> int {
         const auto terrain_click = registry.get<TerrainClick>(terrain_entity);
         if (terrain_click.position) {
             if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON)) {
-                create_minion(registry, *terrain_click.position);
+                create_minion(registry, *terrain_click.position, rand() % 2);
             }
         }
 
