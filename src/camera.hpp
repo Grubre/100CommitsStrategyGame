@@ -1,26 +1,57 @@
 #pragma once
 #include "common_components.hpp"
+#include <algorithm>
+#include <cmath>
+#include <raylib.h>
+#include <raymath.h>
 
 namespace stratgame {
 
 enum class ZOOM_DIRECTION { IN, OUT, NONE };
 
 struct Camera {
-    Camera3D camera3d{};
-    bool active{};
-    float max_zoom = 100.f; // distance from target
-    float min_zoom = 10.f;  // distance from target
-    float rotation = 0.f;
-    float angle = 0.f;
-    Vector2 velocity;
-    float speed = 30.0f;
-    float rotation_speed = 30.f;
-    ZOOM_DIRECTION zoom = ZOOM_DIRECTION::NONE;
+    Camera3D camera3d;
 
-    [[nodiscard]] auto get_zoom() const -> float { return Vector3Distance(camera3d.position, camera3d.target); }
-    [[nodiscard]] auto is_within_zoom_bounds() const -> bool {
-        return get_zoom() <= max_zoom && get_zoom() >= min_zoom;
+    explicit Camera(Camera3D c) : camera3d(c) {}
+
+    float max_zoom = 100.f; // max distance from target
+    float min_zoom = 10.f;  // min distance from target
+    float min_pitch = 0.f;
+    float max_pitch = 0.49f*M_PIf;
+    float speed = 30.0f;
+    float rotation_speed = 5.f;
+    float zoom_speed = 1000.f;
+
+    float zoom = 20.0f;      // distance from target
+    float yaw = 0.f;        // rotation around y axis
+    float pitch = M_PIf / 3.f;      // angle between xz plane and camera
+    Vector2 target_position = Vector2{0.0, 0.0};
+    
+    // ZOOM_DIRECTION zoom_dir = ZOOM_DIRECTION::NONE;
+
+    [[nodiscard]] auto get_target_position() const -> Vector3 {
+        return Vector3{.x = target_position.x, .y = 0.0f, .z = target_position.y};
     }
+    [[nodiscard]] auto get_source_position() const -> Vector3 {
+        auto const pitched = Vector3 { cos(pitch), sin(pitch), 0.0f };
+        auto const yawed = Vector3RotateByAxisAngle(pitched, Vector3{0.0,1.0,0.0}, yaw);
+        auto const source_offset = Vector3Scale(yawed, zoom);
+
+        auto const source_vec = Vector3Add(source_offset, get_target_position());
+
+        return source_vec;
+    }
+    [[nodiscard]] auto is_within_zoom_bounds() const -> bool { return zoom <= max_zoom && zoom >= min_zoom; }
+
+    void keep_rotation_bounds() { 
+        pitch = std::clamp(pitch, min_pitch, max_pitch);
+        yaw = std::fmod(yaw, 2*M_PIf);
+    }
+    void keep_zoom_bounds() {
+        zoom = std::clamp(zoom, min_zoom, max_zoom);
+    }
+
+    
 };
 
 auto create_camera(entt::registry &registry) -> entt::entity;
