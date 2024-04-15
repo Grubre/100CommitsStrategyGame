@@ -156,6 +156,12 @@ auto main() -> int {
 
     registry.emplace<TerrainClick>(terrain_entity);
 
+    const auto tree_model = LoadModel("../resources/tree.glb");
+    const auto tree = registry.create();
+
+    registry.emplace<stratgame::ModelComponent>(tree, tree_model);
+    registry.emplace<stratgame::Transform>(tree, Vector3 {0.0, 5.0, 0.0});
+
     const auto camera_entity = stratgame::create_camera(registry);
 
     add_team(registry, RED);

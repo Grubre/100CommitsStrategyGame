@@ -16,7 +16,7 @@ struct Camera {
 
     float max_zoom = 100.f; // max distance from target
     float min_zoom = 10.f;  // min distance from target
-    float min_pitch = 0.f;
+    float min_pitch = 0.2f*M_PIf;
     float max_pitch = 0.49f*M_PIf;
     float speed = 30.0f;
     float rotation_speed = 5.f;
