@@ -20,6 +20,35 @@ void draw_models(entt::registry &registry) {
     }
 }
 
+struct InstanceableModel {
+    int model_id;
+    Model model;
+    std::vector<Matrix> transforms;
+};
+
+struct ModelInstance {
+    int model_id;
+    int instance_id;
+};
+
+auto register_instanceable_model(entt::registry &registry, const Model &model) -> entt::entity {
+    static int model_id = 0;
+
+    auto entity = registry.create();
+    registry.emplace<InstanceableModel>(entity, model_id, model, std::vector<Matrix>{});
+
+    model_id++;
+    return entity;
+}
+
+void add_instance(entt::registry &registry, entt::entity model_entity) {
+    auto &instanceable_model = registry.get<InstanceableModel>(model_entity);
+    instanceable_model.transforms.push_back(MatrixIdentity());
+    registry.emplace<ModelInstance>(model_entity, instanceable_model.transforms.size());
+}
+
+void draw_models_instanced(entt::registry &registry) { auto view = registry.view<InstanceableModel>(); }
+
 void draw_model_wireframes(entt::registry &registry) {
     auto view = registry.view<ModelComponent, stratgame::Transform, DrawModelWireframeComponent>();
     for (auto entity : view) {
