@@ -47,7 +47,13 @@ void add_instance(entt::registry &registry, entt::entity model_entity) {
     registry.emplace<ModelInstance>(model_entity, instanceable_model.transforms.size());
 }
 
-void draw_models_instanced(entt::registry &registry) { auto view = registry.view<InstanceableModel>(); }
+void draw_models_instanced(entt::registry &registry) {
+    auto view = registry.view<InstanceableModel>();
+
+
+
+
+}
 
 void draw_model_wireframes(entt::registry &registry) {
     auto view = registry.view<ModelComponent, stratgame::Transform, DrawModelWireframeComponent>();
