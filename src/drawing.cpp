@@ -34,7 +34,7 @@ struct ModelInstance {
 auto register_instanceable_model(entt::registry &registry, const Model &model) -> entt::entity {
     static int model_id = 0;
 
-    auto entity = registry.create();
+    const auto entity = registry.create();
     registry.emplace<InstanceableModel>(entity, model_id, model, std::vector<Matrix>{});
 
     model_id++;
