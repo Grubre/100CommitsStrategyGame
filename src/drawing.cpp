@@ -1,5 +1,6 @@
 #include "drawing.hpp"
 #include "common_components.hpp"
+#include <iostream>
 
 namespace stratgame {
 void draw_models(entt::registry &registry) {
@@ -20,19 +21,10 @@ void draw_models(entt::registry &registry) {
     }
 }
 
-struct InstanceableModel {
-    int model_id;
-    Model model;
-    std::vector<Matrix> transforms;
-};
-
-struct ModelInstance {
-    int model_id;
-    int instance_id;
-};
-
 auto register_instanceable_model(entt::registry &registry, const Model &model) -> entt::entity {
     static int model_id = 0;
+
+    std::cout << "Registering model with id: " << model_id << "\n";
 
     const auto entity = registry.create();
     registry.emplace<InstanceableModel>(entity, model_id, model, std::vector<Matrix>{});
@@ -41,18 +33,36 @@ auto register_instanceable_model(entt::registry &registry, const Model &model) -
     return entity;
 }
 
-void add_instance(entt::registry &registry, entt::entity model_entity) {
+void add_instance(entt::registry &registry, entt::entity model_entity, entt::entity object_entity) {
     auto &instanceable_model = registry.get<InstanceableModel>(model_entity);
-    instanceable_model.transforms.push_back(MatrixIdentity());
-    registry.emplace<ModelInstance>(model_entity, instanceable_model.transforms.size());
+    auto &transforms = instanceable_model.transforms;
+
+    transforms.push_back(MatrixIdentity());
+    registry.emplace<ModelInstance>(object_entity, instanceable_model.model_id, static_cast<int>(transforms.size()));
+
+    std::cout << "Created new instance of model " << instanceable_model.model_id << ".\n";
 }
 
 void draw_models_instanced(entt::registry &registry) {
-    auto view = registry.view<InstanceableModel>();
+    auto models = registry.view<InstanceableModel>();
+    auto instanced_entities = registry.view<ModelInstance, stratgame::Transform>();
 
+    for (auto model_entity : models) {
+        auto &instanceable_model = models.get<InstanceableModel>(model_entity);
+        auto &transforms = instanceable_model.transforms;
 
+        for (auto instanced_entity : instanced_entities) {
+            auto &model_instance = instanced_entities.get<ModelInstance>(instanced_entity);
+            if (model_instance.model_id != instanceable_model.model_id) {
+                continue;
+            }
 
+            auto &transform = instanced_entities.get<stratgame::Transform>(instanced_entity);
+            transforms[static_cast<std::size_t>(model_instance.instance_id - 1)] = MatrixTranslate(transform.position.x, transform.position.y, transform.position.z);
+        }
 
+        DrawMeshInstanced(instanceable_model.model.meshes[0], {}, transforms.data(), static_cast<int>(transforms.size()));
+    }
 }
 
 void draw_model_wireframes(entt::registry &registry) {

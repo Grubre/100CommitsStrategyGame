@@ -157,10 +157,11 @@ auto main() -> int {
     registry.emplace<TerrainClick>(terrain_entity);
 
     const auto tree_model = LoadModel("../resources/tree.glb");
-    const auto tree = registry.create();
+    auto tree_model_entity = stratgame::register_instanceable_model(registry, tree_model);
 
-    registry.emplace<stratgame::ModelComponent>(tree, tree_model);
-    registry.emplace<stratgame::Transform>(tree, Vector3 {0.0, 5.0, 0.0});
+    auto tree_entity = registry.create();
+    registry.emplace<stratgame::Transform>(tree_entity, Vector3 {0.0, 5.0, 0.0});
+    stratgame::add_instance(registry, tree_model_entity, tree_entity);
 
     const auto camera_entity = stratgame::create_camera(registry);
 
@@ -203,6 +204,7 @@ auto main() -> int {
         // ======================================
         stratgame::draw_models(registry);
         stratgame::draw_model_wireframes(registry);
+        stratgame::draw_models_instanced(registry);
         // ======================================
 
         DrawLine3D({-1000, 0, 0}, {1000, 0, 0}, RED);
