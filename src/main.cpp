@@ -6,6 +6,7 @@
 #include <entt.hpp>
 #include <iostream>
 #include <optional>
+#include <variant>
 
 #include "common_components.hpp"
 #include "terrain.hpp"
@@ -49,6 +50,54 @@ struct BaseStats {
 struct Selectable {
     bool selected{false};
 };
+
+struct WalkToTask {
+    Vector2 position;
+};
+
+using Task = std::variant<WalkToTask>;
+
+struct TaskQueue {
+    std::vector<Task> tasks;
+};
+
+void add_task(entt::registry &registry, entt::entity entity, Task task) {
+    if (!registry.all_of<TaskQueue>(entity)) {
+        registry.emplace<TaskQueue>(entity);
+    }
+
+    std::cout << "Adding task to entity\n";
+
+    registry.patch<TaskQueue>(entity, [&](TaskQueue &task_queue) { task_queue.tasks.push_back(task); });
+}
+
+void update_tasks(entt::registry &registry) {
+    auto minions = registry.view<Minion, stratgame::Transform, TaskQueue>();
+
+    for (auto minion : minions) {
+        auto &transform = registry.get<stratgame::Transform>(minion);
+        auto &task_queue = registry.get<TaskQueue>(minion);
+
+        if (task_queue.tasks.empty()) {
+            continue;
+        }
+
+        const auto &task = task_queue.tasks[0];
+
+        if (std::holds_alternative<WalkToTask>(task)) {
+            const auto walk_to_task = std::get<WalkToTask>(task);
+            const auto target = Vector3{walk_to_task.position.x, 0, walk_to_task.position.y};
+
+            const auto direction = Vector3Normalize(Vector3Subtract(target, transform.position));
+            transform.position = Vector3Add(transform.position, Vector3Scale(direction, 0.2f));
+
+            if (Vector3Distance(transform.position, target) < 1.f) {
+                std::cout << "Task complete\n";
+                task_queue.tasks.erase(task_queue.tasks.begin());
+            }
+        }
+    }
+}
 
 auto setup_entt() -> entt::registry {
     entt::registry registry;
@@ -182,7 +231,8 @@ auto main() -> int {
         const auto terrain_click = registry.get<TerrainClick>(terrain_entity);
         if (terrain_click.position) {
             if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON)) {
-                create_minion(registry, *terrain_click.position, rand() % 2);
+                auto minion = create_minion(registry, *terrain_click.position, rand() % 2);
+                add_task(registry, minion, WalkToTask{{0, 0}});
             }
         }
 
@@ -190,6 +240,7 @@ auto main() -> int {
         stratgame::update_transform(registry);
         stratgame::update_camera(registry);
         update_minion_heights(registry);
+        update_tasks(registry);
 
         // ======================================
 
