@@ -24,7 +24,7 @@ void setup_raylib() {
 }
 
 using team_color_map = std::unordered_map<int, Color>;
-void add_team(entt::registry &registry, const Color& color) {
+void add_team(entt::registry &registry, const Color &color) {
     static int team_id = 0;
 
     if (team_id == 0) {
@@ -97,7 +97,7 @@ void update_tasks(entt::registry &registry) {
             const auto movement_delta_scalar = walk_to_task.speed * delta;
             const auto movement_delta = Vector2Scale(direction, movement_delta_scalar);
 
-            if(Vector2Length(diff_to_target2d) < movement_delta_scalar) {
+            if (Vector2Length(diff_to_target2d) < movement_delta_scalar) {
                 std::cout << "Reached target!\n";
                 transform.position = target;
                 task_queue.tasks.erase(task_queue.tasks.begin());
@@ -166,6 +166,10 @@ struct TerrainClick {
     std::optional<Vector2> position;
 };
 
+struct SelectedState {
+    int32_t selected_entities_count = 0u;
+};
+
 void handle_clicks(entt::registry &registry) {
     const auto terrain_entity = registry.view<TerrainClick>().begin()[0];
     const auto terrain = registry.get<stratgame::ModelComponent>(terrain_entity);
@@ -189,10 +193,15 @@ void handle_clicks(entt::registry &registry) {
             const auto minion_hit = GetRayCollisionSphere(ray, transform.position, 1.f);
 
             if (minion_hit.hit) {
-                std::cout << "Minion hit!" << std::endl;
-            }
+                registry.patch<Selectable>(minion, [&](Selectable &selectable) {
+                    selectable.selected = !selectable.selected;
 
-            registry.patch<Selectable>(minion, [&](Selectable &selectable) { selectable.selected = minion_hit.hit; });
+                    registry.patch<SelectedState>(registry.view<SelectedState>().begin()[0],
+                                                  [&](SelectedState &selected) {
+                                                      selected.selected_entities_count += selectable.selected ? 1 : -1;
+                                                  });
+                });
+            }
         }
     }
 }
@@ -218,8 +227,11 @@ auto main() -> int {
     auto tree_model_entity = stratgame::register_instanceable_model(registry, tree_model);
 
     auto tree_entity = registry.create();
-    registry.emplace<stratgame::Transform>(tree_entity, Vector3 {0.0, 5.0, 0.0});
+    registry.emplace<stratgame::Transform>(tree_entity, Vector3{0.0, 5.0, 0.0});
     stratgame::add_instance(registry, tree_model_entity, tree_entity);
+
+    auto selected_entity = registry.create();
+    registry.emplace<SelectedState>(selected_entity);
 
     const auto camera_entity = stratgame::create_camera(registry);
 
@@ -240,8 +252,17 @@ auto main() -> int {
         const auto terrain_click = registry.get<TerrainClick>(terrain_entity);
         if (terrain_click.position) {
             if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON)) {
-                auto minion = create_minion(registry, *terrain_click.position, rand() % 2);
-                add_task(registry, minion, WalkToTask{{0, 0}, 5.f});
+                auto selected_minions = registry.view<Minion, Selectable>();
+
+                for (auto minion : selected_minions) {
+                    const auto selected = registry.get<Selectable>(minion).selected;
+
+                    if (!selected) {
+                        continue;
+                    }
+
+                    add_task(registry, minion, WalkToTask{*terrain_click.position, 5.f});
+                }
             }
         }
 
