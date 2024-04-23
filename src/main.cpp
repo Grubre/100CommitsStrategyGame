@@ -52,7 +52,8 @@ struct Selectable {
 };
 
 struct WalkToTask {
-    Vector2 position;
+    Vector2 target;
+    float speed;
 };
 
 using Task = std::variant<WalkToTask>;
@@ -74,6 +75,8 @@ void add_task(entt::registry &registry, entt::entity entity, Task task) {
 void update_tasks(entt::registry &registry) {
     auto minions = registry.view<Minion, stratgame::Transform, TaskQueue>();
 
+    const auto delta = GetFrameTime();
+
     for (auto minion : minions) {
         auto &transform = registry.get<stratgame::Transform>(minion);
         auto &task_queue = registry.get<TaskQueue>(minion);
@@ -86,14 +89,20 @@ void update_tasks(entt::registry &registry) {
 
         if (std::holds_alternative<WalkToTask>(task)) {
             const auto walk_to_task = std::get<WalkToTask>(task);
-            const auto target = Vector3{walk_to_task.position.x, 0, walk_to_task.position.y};
+            const auto target = Vector3{walk_to_task.target.x, 0, walk_to_task.target.y};
 
-            const auto direction = Vector3Normalize(Vector3Subtract(target, transform.position));
-            transform.position = Vector3Add(transform.position, Vector3Scale(direction, 0.2f));
+            const auto diff_to_target = Vector3Subtract(target, transform.position);
+            const auto diff_to_target2d = Vector2{diff_to_target.x, diff_to_target.z};
+            const auto direction = Vector2Normalize(diff_to_target2d);
+            const auto movement_delta_scalar = walk_to_task.speed * delta;
+            const auto movement_delta = Vector2Scale(direction, movement_delta_scalar);
 
-            if (Vector3Distance(transform.position, target) < 1.f) {
-                std::cout << "Task complete\n";
+            if(Vector2Length(diff_to_target2d) < movement_delta_scalar) {
+                std::cout << "Reached target!\n";
+                transform.position = target;
                 task_queue.tasks.erase(task_queue.tasks.begin());
+            } else {
+                transform.position = Vector3Add(transform.position, {movement_delta.x, 0, movement_delta.y});
             }
         }
     }
@@ -232,7 +241,7 @@ auto main() -> int {
         if (terrain_click.position) {
             if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON)) {
                 auto minion = create_minion(registry, *terrain_click.position, rand() % 2);
-                add_task(registry, minion, WalkToTask{{0, 0}});
+                add_task(registry, minion, WalkToTask{{0, 0}, 5.f});
             }
         }
 
