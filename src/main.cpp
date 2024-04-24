@@ -59,7 +59,22 @@ struct WalkToTask {
 using Task = std::variant<WalkToTask>;
 
 struct TaskQueue {
-    std::vector<Task> tasks;
+    void append_task(Task task) { m_tasks.push_front(task); }
+    void remove_task() { m_tasks.pop_front(); }
+    void clear_tasks() { m_tasks.clear(); }
+    void set_new_task(Task task) {
+        if(!m_tasks.empty()) {
+            m_tasks[0] = task;
+            return;
+        }
+        m_tasks.push_front(task);
+    }
+
+    [[nodiscard]] auto tasks() const -> const std::deque<Task> & { return m_tasks; }
+    [[nodiscard]] auto current_task() const -> const Task & { return m_tasks[0]; }
+    [[nodiscard]] auto empty() const -> bool { return m_tasks.empty(); }
+private:
+    std::deque<Task> m_tasks;
 };
 
 void add_task(entt::registry &registry, entt::entity entity, Task task) {
@@ -69,7 +84,7 @@ void add_task(entt::registry &registry, entt::entity entity, Task task) {
 
     std::cout << "Adding task to entity\n";
 
-    registry.patch<TaskQueue>(entity, [&](TaskQueue &task_queue) { task_queue.tasks.push_back(task); });
+    registry.patch<TaskQueue>(entity, [&](TaskQueue &task_queue) { task_queue.set_new_task(task); });
 }
 
 void update_tasks(entt::registry &registry) {
@@ -81,11 +96,11 @@ void update_tasks(entt::registry &registry) {
         auto &transform = registry.get<stratgame::Transform>(minion);
         auto &task_queue = registry.get<TaskQueue>(minion);
 
-        if (task_queue.tasks.empty()) {
+        if (task_queue.empty()) {
             continue;
         }
 
-        const auto &task = task_queue.tasks[0];
+        const auto &task = task_queue.current_task();
 
         if (std::holds_alternative<WalkToTask>(task)) {
             const auto walk_to_task = std::get<WalkToTask>(task);
@@ -100,7 +115,7 @@ void update_tasks(entt::registry &registry) {
             if (Vector2Length(diff_to_target2d) < movement_delta_scalar) {
                 std::cout << "Reached target!\n";
                 transform.position = target;
-                task_queue.tasks.erase(task_queue.tasks.begin());
+                task_queue.remove_task();
             } else {
                 transform.position = Vector3Add(transform.position, {movement_delta.x, 0, movement_delta.y});
             }
