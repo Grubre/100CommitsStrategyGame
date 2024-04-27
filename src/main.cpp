@@ -242,7 +242,7 @@ auto main() -> int {
     auto tree_model_entity = stratgame::register_instanceable_model(registry, tree_model);
 
     auto tree_entity = registry.create();
-    registry.emplace<stratgame::Transform>(tree_entity, Vector3{0.0, 5.0, 0.0});
+    registry.emplace<stratgame::Transform>(tree_entity, Vector3{0.0, 0.0, 0.0});
     stratgame::add_instance(registry, tree_model_entity, tree_entity);
 
     auto selected_entity = registry.create();

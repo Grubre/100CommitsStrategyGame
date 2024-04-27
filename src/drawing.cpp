@@ -61,7 +61,11 @@ void draw_models_instanced(entt::registry &registry) {
             transforms[static_cast<std::size_t>(model_instance.instance_id - 1)] = MatrixTranslate(transform.position.x, transform.position.y, transform.position.z);
         }
 
-        DrawMeshInstanced(instanceable_model.model.meshes[0], instanceable_model.model.materials[0], transforms.data(), static_cast<int>(transforms.size()));
+        for(auto i = 0; i < instanceable_model.model.meshCount; i++) {
+            for(auto j = 0; j < instanceable_model.model.materialCount; j++) {
+                DrawMeshInstanced(instanceable_model.model.meshes[i], instanceable_model.model.materials[j], transforms.data(), static_cast<int>(transforms.size()));
+            }
+        }
     }
 }
 
