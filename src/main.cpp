@@ -10,6 +10,9 @@
 #include "common_components.hpp"
 #include "terrain.hpp"
 
+#define RAYGUI_IMPLEMENTATION
+#include "raygui.h"
+
 void handle_input(entt::registry &registry) { stratgame::handle_camera_input(registry); }
 
 void setup_raylib() {
@@ -155,6 +158,9 @@ auto main() -> int {
         stratgame::create_minion(registry, {static_cast<float>(i * 2), static_cast<float>(i * 2)}, rand() % 2);
     }
 
+    bool toggle_wireframe = false;
+    GuiLoadStyleDefault();
+
     while (!WindowShouldClose()) {
         const auto &camera = registry.get<stratgame::Camera>(camera_entity);
         // ======================================
@@ -188,6 +194,7 @@ auto main() -> int {
         // ======================================
 
         BeginDrawing();
+        GuiCheckBox(Rectangle{50, 100, 30, 30}, "Toggle wireframe", &toggle_wireframe);
 
         ClearBackground(RAYWHITE);
 
@@ -197,7 +204,9 @@ auto main() -> int {
         // DRAW SYSTEMS
         // ======================================
         stratgame::draw_models(registry);
-        stratgame::draw_model_wireframes(registry);
+        if (toggle_wireframe) {
+            stratgame::draw_model_wireframes(registry);
+        }
         stratgame::draw_models_instanced(registry);
         // ======================================
 
