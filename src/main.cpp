@@ -198,7 +198,6 @@ auto main() -> int {
         // ======================================
 
         BeginDrawing();
-        GuiCheckBox(Rectangle{50, 100, 30, 30}, "Toggle wireframe", &toggle_wireframe);
 
         ClearBackground(RAYWHITE);
 
@@ -218,6 +217,8 @@ auto main() -> int {
         DrawLine3D({0, 0, -1000}, {0, 0, 1000}, BLUE);
 
         EndMode3D();
+
+        GuiCheckBox(Rectangle{50, 100, 30, 30}, "Toggle wireframe", &toggle_wireframe);
 
         DrawFPS(10, 10);
 
