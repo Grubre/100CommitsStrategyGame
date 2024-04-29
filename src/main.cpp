@@ -3,6 +3,7 @@
 #include "raylib.h"
 #include "raymath.h"
 #include "systems.hpp"
+#include <cstdlib>
 #include <entt.hpp>
 #include <iostream>
 #include <optional>
@@ -238,7 +239,7 @@ auto main() -> int {
 
     registry.emplace<TerrainClick>(terrain_entity);
 
-    const auto tree_model = LoadModel("../resources/tree.glb");
+    const auto tree_model = LoadModel("../resources/tree/tree.gltf");
     auto tree_instancing_shader = LoadShader("../resources/shaders/instancing.vs", "../resources/shaders/instancing.fs");
     tree_instancing_shader.locs[SHADER_LOC_MATRIX_MVP] = GetShaderLocation(tree_instancing_shader, "mvp");
     tree_instancing_shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(tree_instancing_shader, "viewPos");
@@ -246,11 +247,17 @@ auto main() -> int {
 
     for(auto i = 0; i < tree_model.materialCount; i++) {
         tree_model.materials[i].shader = tree_instancing_shader;
+        tree_model.materials[i].maps[MATERIAL_MAP_ALBEDO].texture = LoadTexture("../resources/tree/treeDiffuse.png");
     }
     auto tree_model_entity = stratgame::register_instanceable_model(registry, tree_model);
 
-    for(int i = 0; i < 1000; i++) {
-        stratgame::create_model_instance(registry, tree_model_entity, Vector3{(float)i, 0.0, (float)i}, registry.create());
+    for(int i = 0; i < 50; i++) {
+        for(int j = 0; j < 50; j++) {
+            const auto height = heights[4*i + 4*j * 200];
+            const auto x_offset = ((float)rand() / RAND_MAX) * 2 - 1;
+            const auto z_offset = ((float)rand() / RAND_MAX) * 2 - 1;
+            stratgame::create_model_instance(registry, tree_model_entity, Vector3{4*(float)i + x_offset, height, 4*(float)j + z_offset}, registry.create());
+        }
     }
 
     auto selected_entity = registry.create();
