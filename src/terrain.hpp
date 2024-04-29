@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <optional>
 #include <raylib.h>
 #include <span>
 #include <vector>
@@ -15,6 +16,11 @@ struct GeneratedTerrain {
     Model model;
     Heights heights;
 };
+
+struct TerrainClick {
+    std::optional<Vector2> position;
+};
+
 auto generate_terrain_model(uint32_t rows, uint32_t cols) -> GeneratedTerrain;
 
 auto generate_terrain_shader(const std::filesystem::path &vert_path, const std::filesystem::path &frag_path,

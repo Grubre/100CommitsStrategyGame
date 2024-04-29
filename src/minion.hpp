@@ -4,6 +4,15 @@
 
 namespace stratgame {
 
+// ===================================
+// teams
+// ===================================
+using team_color_map = std::unordered_map<int, Color>;
+void register_team(entt::registry &registry, const Color &color);
+
+// ===================================
+// minions
+// ===================================
 struct Minion {
     int team_id;
 };

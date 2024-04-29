@@ -30,4 +30,19 @@ void update_minion_heights(entt::registry &registry) {
         transform.position.y = heights[z * 200 + x] + 1.f;
     }
 }
+
+void register_team(entt::registry &registry, const Color &color) {
+    static int team_id = 0;
+
+    if (team_id == 0) {
+        const auto team_color_map_entity = registry.create();
+        registry.emplace<team_color_map>(team_color_map_entity);
+    }
+
+    auto &team_colors = registry.get<team_color_map>(*registry.view<team_color_map>().begin());
+    team_colors[team_id] = color;
+
+    team_id++;
+}
+
 } // namespace stratgame
