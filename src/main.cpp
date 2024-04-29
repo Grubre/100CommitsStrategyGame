@@ -1,12 +1,11 @@
 #include "camera.hpp"
 #include "drawing.hpp"
+#include "minion.hpp"
 #include "raylib.h"
-#include "raymath.h"
 #include "systems.hpp"
+#include "tasks.hpp"
 #include <entt.hpp>
-#include <iostream>
 #include <optional>
-#include <variant>
 
 #include "common_components.hpp"
 #include "terrain.hpp"
@@ -38,91 +37,6 @@ void add_team(entt::registry &registry, const Color &color) {
     team_id++;
 }
 
-struct Minion {
-    int team_id;
-};
-
-struct BaseStats {
-    int health{100};
-    int attack{10};
-};
-
-struct Selectable {
-    bool selected{false};
-};
-
-struct WalkToTask {
-    Vector2 target;
-    float speed;
-};
-
-using Task = std::variant<WalkToTask>;
-
-struct TaskQueue {
-    void append_task(Task task) { m_tasks.push_front(task); }
-    void remove_task() { m_tasks.pop_front(); }
-    void clear_tasks() { m_tasks.clear(); }
-    void set_new_task(Task task) {
-        if(!m_tasks.empty()) {
-            m_tasks[0] = task;
-            return;
-        }
-        m_tasks.push_front(task);
-    }
-
-    [[nodiscard]] auto tasks() const -> const std::deque<Task> & { return m_tasks; }
-    [[nodiscard]] auto current_task() const -> const Task & { return m_tasks[0]; }
-    [[nodiscard]] auto empty() const -> bool { return m_tasks.empty(); }
-private:
-    std::deque<Task> m_tasks;
-};
-
-void add_task(entt::registry &registry, entt::entity entity, Task task) {
-    if (!registry.all_of<TaskQueue>(entity)) {
-        registry.emplace<TaskQueue>(entity);
-    }
-
-    std::cout << "Adding task to entity\n";
-
-    registry.patch<TaskQueue>(entity, [&](TaskQueue &task_queue) { task_queue.set_new_task(task); });
-}
-
-void update_tasks(entt::registry &registry) {
-    auto minions = registry.view<Minion, stratgame::Transform, TaskQueue>();
-
-    const auto delta = GetFrameTime();
-
-    for (auto minion : minions) {
-        auto &transform = registry.get<stratgame::Transform>(minion);
-        auto &task_queue = registry.get<TaskQueue>(minion);
-
-        if (task_queue.empty()) {
-            continue;
-        }
-
-        const auto &task = task_queue.current_task();
-
-        if (std::holds_alternative<WalkToTask>(task)) {
-            const auto walk_to_task = std::get<WalkToTask>(task);
-            const auto target = Vector3{walk_to_task.target.x, 0, walk_to_task.target.y};
-
-            const auto diff_to_target = Vector3Subtract(target, transform.position);
-            const auto diff_to_target2d = Vector2{diff_to_target.x, diff_to_target.z};
-            const auto direction = Vector2Normalize(diff_to_target2d);
-            const auto movement_delta_scalar = walk_to_task.speed * delta;
-            const auto movement_delta = Vector2Scale(direction, movement_delta_scalar);
-
-            if (Vector2Length(diff_to_target2d) < movement_delta_scalar) {
-                std::cout << "Reached target!\n";
-                transform.position = target;
-                task_queue.remove_task();
-            } else {
-                transform.position = Vector3Add(transform.position, {movement_delta.x, 0, movement_delta.y});
-            }
-        }
-    }
-}
-
 auto setup_entt() -> entt::registry {
     entt::registry registry;
 
@@ -131,12 +45,12 @@ auto setup_entt() -> entt::registry {
     registry.on_construct<stratgame::Movement>().connect<&entt::registry::emplace_or_replace<stratgame::Transform>>();
 
     // NOTE: Minions must have Transform, BaseStats and ModelComponent
-    registry.on_construct<Minion>().connect<[](entt::registry &registry, entt::entity entity) {
+    registry.on_construct<stratgame::Minion>().connect<[](entt::registry &registry, entt::entity entity) {
         registry.emplace<stratgame::Transform>(entity);
-        registry.emplace<BaseStats>(entity);
-        registry.emplace<Selectable>(entity);
+        registry.emplace<stratgame::BaseStats>(entity);
+        registry.emplace<stratgame::Selectable>(entity);
 
-        const auto &minion = registry.get<Minion>(entity);
+        const auto &minion = registry.get<stratgame::Minion>(entity);
         auto model = LoadModelFromMesh(GenMeshSphere(1.f, 16, 16));
 
         const auto team_color_map_entity = registry.view<team_color_map>().begin()[0];
@@ -148,33 +62,6 @@ auto setup_entt() -> entt::registry {
     }>();
 
     return registry;
-}
-
-auto create_minion(entt::registry &registry, Vector2 position, int team_id) -> entt::entity {
-    auto entity = registry.create();
-    registry.emplace<Minion>(entity, team_id);
-
-    auto &transform = registry.get<stratgame::Transform>(entity);
-    transform.position.x = position.x;
-    transform.position.z = position.y;
-    return entity;
-}
-
-void update_minion_heights(entt::registry &registry) {
-    const auto height_entity = registry.view<const stratgame::GeneratedTerrain::Heights>();
-    const auto heights = registry.get<stratgame::GeneratedTerrain::Heights>(*height_entity.begin());
-
-    auto minions = registry.view<Minion>();
-
-    for (auto minion : minions) {
-        auto &transform = registry.get<stratgame::Transform>(minion);
-
-        const auto x = static_cast<int>(transform.position.x);
-        const auto z = static_cast<int>(transform.position.z);
-
-        // NOTE: The +1 is because minions are temporarily spheres of radius 1
-        transform.position.y = heights[z * 200 + x] + 1.f;
-    }
 }
 
 struct TerrainClick {
@@ -201,14 +88,14 @@ void handle_clicks(entt::registry &registry) {
             click.position = hit.hit ? std::optional{Vector2{hit.point.x, hit.point.z}} : std::nullopt;
         });
 
-        auto minions = registry.view<Minion, stratgame::ModelComponent, stratgame::Transform>();
+        auto minions = registry.view<stratgame::Minion, stratgame::ModelComponent, stratgame::Transform>();
         for (auto minion : minions) {
             const auto &transform = registry.get<stratgame::Transform>(minion);
 
             const auto minion_hit = GetRayCollisionSphere(ray, transform.position, 1.f);
 
             if (minion_hit.hit) {
-                registry.patch<Selectable>(minion, [&](Selectable &selectable) {
+                registry.patch<stratgame::Selectable>(minion, [&](stratgame::Selectable &selectable) {
                     selectable.selected = !selectable.selected;
 
                     registry.patch<SelectedState>(registry.view<SelectedState>().begin()[0],
@@ -239,18 +126,21 @@ auto main() -> int {
     registry.emplace<TerrainClick>(terrain_entity);
 
     const auto tree_model = LoadModel("../resources/tree.glb");
-    auto tree_instancing_shader = LoadShader("../resources/shaders/instancing.vs", "../resources/shaders/instancing.fs");
+    auto tree_instancing_shader =
+        LoadShader("../resources/shaders/instancing.vs", "../resources/shaders/instancing.fs");
     tree_instancing_shader.locs[SHADER_LOC_MATRIX_MVP] = GetShaderLocation(tree_instancing_shader, "mvp");
     tree_instancing_shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(tree_instancing_shader, "viewPos");
-    tree_instancing_shader.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocationAttrib(tree_instancing_shader, "instanceTransform");
+    tree_instancing_shader.locs[SHADER_LOC_MATRIX_MODEL] =
+        GetShaderLocationAttrib(tree_instancing_shader, "instanceTransform");
 
-    for(auto i = 0; i < tree_model.materialCount; i++) {
+    for (auto i = 0; i < tree_model.materialCount; i++) {
         tree_model.materials[i].shader = tree_instancing_shader;
     }
     auto tree_model_entity = stratgame::register_instanceable_model(registry, tree_model);
 
-    for(int i = 0; i < 1000; i++) {
-        stratgame::create_model_instance(registry, tree_model_entity, Vector3{(float)i, 0.0, (float)i}, registry.create());
+    for (int i = 0; i < 1000; i++) {
+        stratgame::create_model_instance(registry, tree_model_entity, Vector3{(float)i, 0.0, (float)i},
+                                         registry.create());
     }
 
     auto selected_entity = registry.create();
@@ -262,7 +152,7 @@ auto main() -> int {
     add_team(registry, BLUE);
 
     for (auto i = 0; i < 10; i++) {
-        create_minion(registry, {static_cast<float>(i * 2), static_cast<float>(i * 2)}, rand() % 2);
+        stratgame::create_minion(registry, {static_cast<float>(i * 2), static_cast<float>(i * 2)}, rand() % 2);
     }
 
     while (!WindowShouldClose()) {
@@ -275,16 +165,16 @@ auto main() -> int {
         const auto terrain_click = registry.get<TerrainClick>(terrain_entity);
         if (terrain_click.position) {
             if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON)) {
-                auto selected_minions = registry.view<Minion, Selectable>();
+                auto selected_minions = registry.view<stratgame::Minion, stratgame::Selectable>();
 
                 for (auto minion : selected_minions) {
-                    const auto selected = registry.get<Selectable>(minion).selected;
+                    const auto selected = registry.get<stratgame::Selectable>(minion).selected;
 
                     if (!selected) {
                         continue;
                     }
 
-                    add_task(registry, minion, WalkToTask{*terrain_click.position, 5.f});
+                    add_task(registry, minion, stratgame::WalkToTask{*terrain_click.position, 5.f});
                 }
             }
         }
@@ -292,8 +182,8 @@ auto main() -> int {
         handle_input(registry);
         stratgame::update_transform(registry);
         stratgame::update_camera(registry);
-        update_minion_heights(registry);
-        update_tasks(registry);
+        stratgame::update_minion_heights(registry);
+        stratgame::update_tasks(registry);
 
         // ======================================
 

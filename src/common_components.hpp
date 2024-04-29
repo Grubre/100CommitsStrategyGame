@@ -1,7 +1,7 @@
 #pragma once
+
+#include "entt.hpp"
 #include "raylib.h"
-#include "raymath.h"
-#include <entt.hpp>
 
 namespace stratgame {
 
@@ -15,4 +15,9 @@ struct Movement {
 struct Transform {
     Vector3 position;
 };
+
+struct Selectable {
+    bool selected{false};
+};
+
 }; // namespace stratgame
