@@ -1,5 +1,6 @@
 #include "systems.hpp"
 #include "common_components.hpp"
+#include <raymath.h>
 
 namespace stratgame {
 void update_transform(entt::registry &registry) {

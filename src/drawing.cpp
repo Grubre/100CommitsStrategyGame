@@ -1,6 +1,7 @@
 #include "drawing.hpp"
 #include "common_components.hpp"
 #include <iostream>
+#include <raymath.h>
 
 namespace stratgame {
 void draw_models(entt::registry &registry) {
@@ -33,7 +34,8 @@ auto register_instanceable_model(entt::registry &registry, const Model &model) -
     return entity;
 }
 
-void create_model_instance(entt::registry &registry, entt::entity model_entity, Vector3 transform, entt::entity object_entity) {
+void create_model_instance(entt::registry &registry, entt::entity model_entity, Vector3 transform,
+                           entt::entity object_entity) {
     registry.emplace<stratgame::Transform>(object_entity, transform);
 
     auto &instanceable_model = registry.get<InstanceableModel>(model_entity);
@@ -60,11 +62,13 @@ void draw_models_instanced(entt::registry &registry) {
             }
 
             auto &transform = instanced_entities.get<stratgame::Transform>(instanced_entity);
-            transforms[static_cast<std::size_t>(model_instance.instance_id - 1)] = MatrixTranslate(transform.position.x, transform.position.y, transform.position.z);
+            transforms[static_cast<std::size_t>(model_instance.instance_id - 1)] =
+                MatrixTranslate(transform.position.x, transform.position.y, transform.position.z);
         }
 
-        for(auto i = 0; i < instanceable_model.model.meshCount; i++) {
-            DrawMeshInstanced(instanceable_model.model.meshes[i], instanceable_model.model.materials[0], transforms.data(), static_cast<int>(transforms.size()));
+        for (auto i = 0; i < instanceable_model.model.meshCount; i++) {
+            DrawMeshInstanced(instanceable_model.model.meshes[i], instanceable_model.model.materials[0],
+                              transforms.data(), static_cast<int>(transforms.size()));
         }
     }
 }
