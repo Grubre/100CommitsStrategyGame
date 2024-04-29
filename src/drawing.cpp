@@ -33,7 +33,9 @@ auto register_instanceable_model(entt::registry &registry, const Model &model) -
     return entity;
 }
 
-void add_instance(entt::registry &registry, entt::entity model_entity, entt::entity object_entity) {
+void add_instance(entt::registry &registry, entt::entity model_entity, Vector3 transform, entt::entity object_entity) {
+    registry.emplace<stratgame::Transform>(object_entity, transform);
+
     auto &instanceable_model = registry.get<InstanceableModel>(model_entity);
     auto &transforms = instanceable_model.transforms;
 
@@ -62,9 +64,7 @@ void draw_models_instanced(entt::registry &registry) {
         }
 
         for(auto i = 0; i < instanceable_model.model.meshCount; i++) {
-            for(auto j = 0; j < instanceable_model.model.materialCount; j++) {
-                DrawMeshInstanced(instanceable_model.model.meshes[i], instanceable_model.model.materials[j], transforms.data(), static_cast<int>(transforms.size()));
-            }
+            DrawMeshInstanced(instanceable_model.model.meshes[i], instanceable_model.model.materials[0], transforms.data(), static_cast<int>(transforms.size()));
         }
     }
 }

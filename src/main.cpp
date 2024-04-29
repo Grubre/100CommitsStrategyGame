@@ -239,11 +239,18 @@ auto main() -> int {
     registry.emplace<TerrainClick>(terrain_entity);
 
     const auto tree_model = LoadModel("../resources/tree.glb");
+    auto tree_instancing_shader = LoadShader("../resources/shaders/instancing.vs", "../resources/shaders/instancing.fs");
+    tree_instancing_shader.locs[SHADER_LOC_MATRIX_MVP] = GetShaderLocation(tree_instancing_shader, "mvp");
+    tree_instancing_shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(tree_instancing_shader, "viewPos");
+    tree_instancing_shader.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocationAttrib(tree_instancing_shader, "instanceTransform");
+
+    for(auto i = 0; i < tree_model.materialCount; i++) {
+        tree_model.materials[i].shader = tree_instancing_shader;
+    }
     auto tree_model_entity = stratgame::register_instanceable_model(registry, tree_model);
 
     auto tree_entity = registry.create();
-    registry.emplace<stratgame::Transform>(tree_entity, Vector3{0.0, 0.0, 0.0});
-    stratgame::add_instance(registry, tree_model_entity, tree_entity);
+    stratgame::add_instance(registry, tree_model_entity, Vector3{0.0, 0.0, 0.0}, tree_entity);
 
     auto selected_entity = registry.create();
     registry.emplace<SelectedState>(selected_entity);
