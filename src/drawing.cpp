@@ -33,7 +33,7 @@ auto register_instanceable_model(entt::registry &registry, const Model &model) -
     return entity;
 }
 
-void add_instance(entt::registry &registry, entt::entity model_entity, Vector3 transform, entt::entity object_entity) {
+void create_model_instance(entt::registry &registry, entt::entity model_entity, Vector3 transform, entt::entity object_entity) {
     registry.emplace<stratgame::Transform>(object_entity, transform);
 
     auto &instanceable_model = registry.get<InstanceableModel>(model_entity);

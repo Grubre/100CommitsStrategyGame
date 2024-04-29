@@ -249,8 +249,9 @@ auto main() -> int {
     }
     auto tree_model_entity = stratgame::register_instanceable_model(registry, tree_model);
 
-    auto tree_entity = registry.create();
-    stratgame::add_instance(registry, tree_model_entity, Vector3{0.0, 0.0, 0.0}, tree_entity);
+    for(int i = 0; i < 1000; i++) {
+        stratgame::create_model_instance(registry, tree_model_entity, Vector3{(float)i, 0.0, (float)i}, registry.create());
+    }
 
     auto selected_entity = registry.create();
     registry.emplace<SelectedState>(selected_entity);
