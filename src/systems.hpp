@@ -3,7 +3,10 @@
 
 namespace stratgame {
 void update_transform(entt::registry &registry);
+
 void handle_input(entt::registry &registry);
+void handle_mouse_input(entt::registry &registry);
+
 void setup_raylib();
 auto setup_entt() -> entt::registry;
 

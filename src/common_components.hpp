@@ -20,4 +20,8 @@ struct Selectable {
     bool selected{false};
 };
 
+struct SelectedState {
+    int32_t selected_entities_count = 0u;
+};
+
 }; // namespace stratgame

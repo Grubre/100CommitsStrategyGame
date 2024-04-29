@@ -1,6 +1,7 @@
 #include "tasks.hpp"
 #include "common_components.hpp"
 #include "minion.hpp"
+#include "terrain.hpp"
 #include <iostream>
 #include <raymath.h>
 
@@ -47,6 +48,26 @@ void update_tasks(entt::registry &registry) {
                 task_queue.remove_task();
             } else {
                 transform.position = Vector3Add(transform.position, {movement_delta.x, 0, movement_delta.y});
+            }
+        }
+    }
+}
+
+void tasks_from_input(entt::registry &registry) {
+    const auto terrain_entity = registry.view<stratgame::TerrainClick>().begin()[0];
+    const auto terrain_click = registry.get<stratgame::TerrainClick>(terrain_entity);
+    if (terrain_click.position) {
+        if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON)) {
+            auto selected_minions = registry.view<stratgame::Minion, stratgame::Selectable>();
+
+            for (auto minion : selected_minions) {
+                const auto selected = registry.get<stratgame::Selectable>(minion).selected;
+
+                if (!selected) {
+                    continue;
+                }
+
+                add_task(registry, minion, stratgame::WalkToTask{*terrain_click.position, 5.f});
             }
         }
     }

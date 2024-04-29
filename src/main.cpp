@@ -5,53 +5,12 @@
 #include "systems.hpp"
 #include "tasks.hpp"
 #include <entt.hpp>
-#include <optional>
 
 #include "common_components.hpp"
 #include "terrain.hpp"
 
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
-
-struct SelectedState {
-    int32_t selected_entities_count = 0u;
-};
-
-void handle_clicks(entt::registry &registry) {
-    const auto terrain_entity = registry.view<stratgame::TerrainClick>().begin()[0];
-    const auto terrain = registry.get<stratgame::ModelComponent>(terrain_entity);
-    const auto camera_entity = registry.view<stratgame::Camera>().begin()[0];
-    const auto &camera = registry.get<stratgame::Camera>(camera_entity);
-
-    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || IsMouseButtonPressed(MOUSE_RIGHT_BUTTON)) {
-        const auto mouse_pos = GetMousePosition();
-        const auto ray = GetMouseRay(mouse_pos, camera.camera3d);
-        // check hit between terrain and ray
-        const auto hit = GetRayCollisionMesh(ray, terrain.model.meshes[0], terrain.model.transform);
-
-        registry.patch<stratgame::TerrainClick>(terrain_entity, [&](stratgame::TerrainClick &click) {
-            click.position = hit.hit ? std::optional{Vector2{hit.point.x, hit.point.z}} : std::nullopt;
-        });
-
-        auto minions = registry.view<stratgame::Minion, stratgame::ModelComponent, stratgame::Transform>();
-        for (auto minion : minions) {
-            const auto &transform = registry.get<stratgame::Transform>(minion);
-
-            const auto minion_hit = GetRayCollisionSphere(ray, transform.position, 1.f);
-
-            if (minion_hit.hit) {
-                registry.patch<stratgame::Selectable>(minion, [&](stratgame::Selectable &selectable) {
-                    selectable.selected = !selectable.selected;
-
-                    registry.patch<SelectedState>(registry.view<SelectedState>().begin()[0],
-                                                  [&](SelectedState &selected) {
-                                                      selected.selected_entities_count += selectable.selected ? 1 : -1;
-                                                  });
-                });
-            }
-        }
-    }
-}
 
 auto main() -> int {
     stratgame::setup_raylib();
@@ -96,7 +55,7 @@ auto main() -> int {
     }
 
     auto selected_entity = registry.create();
-    registry.emplace<SelectedState>(selected_entity);
+    registry.emplace<stratgame::SelectedState>(selected_entity);
 
     const auto camera_entity = stratgame::create_camera(registry);
 
@@ -115,25 +74,6 @@ auto main() -> int {
         // ======================================
         // UPDATE SYSTEMS
         // ======================================
-        handle_clicks(registry);
-
-        const auto terrain_click = registry.get<stratgame::TerrainClick>(terrain_entity);
-        if (terrain_click.position) {
-            if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON)) {
-                auto selected_minions = registry.view<stratgame::Minion, stratgame::Selectable>();
-
-                for (auto minion : selected_minions) {
-                    const auto selected = registry.get<stratgame::Selectable>(minion).selected;
-
-                    if (!selected) {
-                        continue;
-                    }
-
-                    add_task(registry, minion, stratgame::WalkToTask{*terrain_click.position, 5.f});
-                }
-            }
-        }
-
         stratgame::handle_input(registry);
         stratgame::update_transform(registry);
         stratgame::update_camera(registry);
