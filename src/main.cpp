@@ -43,16 +43,16 @@ auto main() -> int {
     }
     auto tree_model_entity = stratgame::register_instanceable_model(registry, tree_model);
 
-    for (int i = 0; i < 50; i++) {
-        for (int j = 0; j < 50; j++) {
-            const auto height = heights[4 * i + 4 * j * 200];
-            const auto x_offset = ((float)rand() / RAND_MAX) * 2 - 1;
-            const auto z_offset = ((float)rand() / RAND_MAX) * 2 - 1;
-            stratgame::create_model_instance(registry, tree_model_entity,
-                                             Vector3{4 * (float)i + x_offset, height, 4 * (float)j + z_offset},
-                                             registry.create());
-        }
-    }
+    // for (int i = 0; i < 50; i++) {
+    //     for (int j = 0; j < 50; j++) {
+    //         const auto height = heights[4 * i + 4 * j * 200];
+    //         const auto x_offset = ((float)rand() / RAND_MAX) * 2 - 1;
+    //         const auto z_offset = ((float)rand() / RAND_MAX) * 2 - 1;
+    //         stratgame::create_model_instance(registry, tree_model_entity,
+    //                                          Vector3{4 * (float)i + x_offset, height, 4 * (float)j + z_offset},
+    //                                          registry.create());
+    //     }
+    // }
 
     auto selected_entity = registry.create();
     registry.emplace<stratgame::SelectedState>(selected_entity);
@@ -62,15 +62,15 @@ auto main() -> int {
     stratgame::register_team(registry, RED);
     stratgame::register_team(registry, BLUE);
 
-    for (auto i = 0; i < 10; i++) {
-        stratgame::create_minion(registry, {static_cast<float>(i * 2), static_cast<float>(i * 2)}, rand() % 2);
-    }
+    // for (auto i = 0; i < 10; i++) {
+    //     stratgame::create_minion(registry, {static_cast<float>(i * 2), static_cast<float>(i * 2)}, rand() % 2);
+    // }
 
     bool toggle_wireframe = false;
     GuiLoadStyleDefault();
 
     while (!WindowShouldClose()) {
-        const auto &camera = registry.get<stratgame::Camera>(camera_entity);
+        auto &camera = registry.get<stratgame::Camera>(camera_entity);
         // ======================================
         // UPDATE SYSTEMS
         // ======================================
@@ -103,7 +103,11 @@ auto main() -> int {
 
         EndMode3D();
 
-        GuiCheckBox(Rectangle{50, 100, 30, 30}, "Toggle wireframe", &toggle_wireframe);
+        // ======================================
+        // DRAW GUI
+        // ======================================
+        GuiCheckBox(Rectangle{50, 50, 30, 30}, "Toggle wireframe", &toggle_wireframe);
+        GuiSliderBar(Rectangle{50, 100, 100, 20}, nullptr, "Camera speed", &camera.speed, 0.f, 500.f);
 
         DrawFPS(10, 10);
 
