@@ -5,6 +5,7 @@
 #include "minion.hpp"
 #include "tasks.hpp"
 #include "terrain.hpp"
+#include <raylib.h>
 #include <raymath.h>
 
 namespace stratgame {
@@ -25,8 +26,10 @@ void handle_input(entt::registry &registry) {
 }
 
 void setup_raylib() {
-    static constexpr int screen_width = 2560;
-    static constexpr int screen_height = 1440;
+
+    const auto display = GetCurrentMonitor();
+    const int screen_width = GetMonitorWidth(display);
+    const int screen_height = GetMonitorHeight(display);
 
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     SetConfigFlags(FLAG_VSYNC_HINT);
