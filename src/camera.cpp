@@ -66,12 +66,12 @@ void handle_camera_input(entt::registry &registry) {
         camera.yaw += yaw_velocity;
 
         const auto scroll = GetMouseWheelMove();
-        camera.zoom -= scroll * camera.zoom_speed * delta_time;
+        camera.zoom -= scroll * camera.zoom_speed * 0.01f;
 
         if (IsMouseButtonDown(MOUSE_MIDDLE_BUTTON)) {
             const auto mouse_delta = GetMouseDelta();
-            camera.yaw -= mouse_delta.x * camera.rotation_speed * delta_time * 0.1f;
-            camera.pitch += mouse_delta.y * camera.rotation_speed * delta_time * 0.1f;
+            camera.yaw -= mouse_delta.x * camera.rotation_speed * 0.001f;
+            camera.pitch += mouse_delta.y * camera.rotation_speed * 0.001f;
         }
 
         if (IsMouseButtonDown(MOUSE_RIGHT_BUTTON)) {
