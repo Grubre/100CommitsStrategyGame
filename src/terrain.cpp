@@ -76,7 +76,9 @@ auto generate_terrain_shader(const std::filesystem::path &vert_path, const std::
         std::exit(1);
     }
 
-    auto terrain_shader = LoadShader(vert_path.c_str(), frag_path.c_str());
+    const auto buff_vert = vert_path.string();
+    const auto buff_frag = frag_path.string();
+    auto terrain_shader = LoadShader(buff_vert.c_str(), buff_frag.c_str());
 
     auto yellow_threshold_loc = GetShaderLocation(terrain_shader, "yellow_threshold");
     float yellow_threshold = 0.02f * height_scale;

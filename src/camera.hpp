@@ -4,6 +4,7 @@
 #include <cmath>
 #include <raylib.h>
 #include <raymath.h>
+#include <numbers>
 
 namespace stratgame {
 
@@ -16,15 +17,15 @@ struct Camera {
 
     float max_zoom = 100.f; // max distance from target
     float min_zoom = 10.f;  // min distance from target
-    float min_pitch = 0.2f*M_PIf;
-    float max_pitch = 0.49f*M_PIf;
+    float min_pitch = 0.2f * std::numbers::pi;
+    float max_pitch = 0.49f * std::numbers::pi;
     float speed = 30.0f;
     float rotation_speed = 5.f;
     float zoom_speed = 1000.f;
 
     float zoom = 20.0f;      // distance from target
     float yaw = 0.f;        // rotation around y axis
-    float pitch = M_PIf / 3.f;      // angle between xz plane and camera
+    float pitch = std::numbers::pi / 3.f; // angle between xz plane and camera
     Vector2 target_position = Vector2{0.0, 0.0};
     
     // ZOOM_DIRECTION zoom_dir = ZOOM_DIRECTION::NONE;
@@ -45,7 +46,7 @@ struct Camera {
 
     void keep_rotation_bounds() { 
         pitch = std::clamp(pitch, min_pitch, max_pitch);
-        yaw = std::fmod(yaw, 2*M_PIf);
+        yaw = std::fmod(yaw, 2 * std::numbers::pi);
     }
     void keep_zoom_bounds() {
         zoom = std::clamp(zoom, min_zoom, max_zoom);
