@@ -1,11 +1,13 @@
 set(EXEC_NAME "main")
 
-find_package(raylib 4.5 REQUIRED)
-
 add_executable(${EXEC_NAME} main.cpp camera.cpp terrain.cpp drawing.cpp
                             systems.cpp minion.cpp tasks.cpp)
 
 set(MAIN_FLAGS ${COMPILE_FLAGS})
+
+add_custom_command(TARGET ${EXEC_NAME} PRE_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy_directory
+                   ${CMAKE_SOURCE_DIR}/resources $<TARGET_FILE_DIR:${EXEC_NAME}>/resources)
 
 if(SANITIZER_AVAILABLE_AND_SET)
   set(MAIN_FLAGS ${MAIN_FLAGS} ${SANITIZER_FLAGS})
