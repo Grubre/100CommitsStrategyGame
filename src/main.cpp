@@ -19,8 +19,8 @@ auto main() -> int {
 
     auto terrain_entity = registry.create();
     auto [terrain, heights] = stratgame::generate_terrain_model(200, 200);
-    auto terrain_shader = stratgame::generate_terrain_shader("resources/shaders/terrain.vert",
-                                                             "resources/shaders/terrain.frag", 5.0f);
+    auto terrain_shader = stratgame::generate_terrain_shader("resources/shaders/terrain.vs",
+                                                             "resources/shaders/terrain.fs", 5.0f);
     registry.emplace<stratgame::ModelComponent>(terrain_entity, terrain);
     registry.emplace<stratgame::ShaderComponent>(terrain_entity, terrain_shader);
     registry.emplace<stratgame::Transform>(terrain_entity, Vector3{0, 0, 0});
