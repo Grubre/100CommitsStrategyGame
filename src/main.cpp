@@ -1,3 +1,4 @@
+#include "assets_loader.hpp"
 #include "camera.hpp"
 #include "drawing.hpp"
 #include "minion.hpp"
@@ -19,8 +20,9 @@ auto main() -> int {
 
     auto terrain_entity = registry.create();
     auto [terrain, heights] = stratgame::generate_terrain_model(200, 200);
-    auto terrain_shader = stratgame::generate_terrain_shader("resources/shaders/terrain.vs",
-                                                             "resources/shaders/terrain.fs", 5.0f);
+    auto terrain_shader = stratgame::generate_terrain_shader(
+        stratgame::unwrap(stratgame::get_asset_path("shaders/terrain.vs")).string().c_str(),
+        stratgame::unwrap(stratgame::get_asset_path("shaders/terrain.fs")).string().c_str(), 5.0f);
     registry.emplace<stratgame::ModelComponent>(terrain_entity, terrain);
     registry.emplace<stratgame::ShaderComponent>(terrain_entity, terrain_shader);
     registry.emplace<stratgame::Transform>(terrain_entity, Vector3{0, 0, 0});
@@ -29,9 +31,10 @@ auto main() -> int {
 
     registry.emplace<stratgame::TerrainClick>(terrain_entity);
 
-    const auto tree_model = LoadModel("resources/tree/tree.gltf");
+    const auto tree_model = LoadModel(stratgame::unwrap(stratgame::get_asset_path("tree/tree.gltf")).string().c_str());
     auto tree_instancing_shader =
-        LoadShader("resources/shaders/instancing.vs", "resources/shaders/instancing.fs");
+        LoadShader(stratgame::unwrap(stratgame::get_asset_path("shaders/instancing.vs")).string().c_str(),
+                   stratgame::unwrap(stratgame::get_asset_path("shaders/instancing.fs")).string().c_str());
     tree_instancing_shader.locs[SHADER_LOC_MATRIX_MVP] = GetShaderLocation(tree_instancing_shader, "mvp");
     tree_instancing_shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(tree_instancing_shader, "viewPos");
     tree_instancing_shader.locs[SHADER_LOC_MATRIX_MODEL] =
@@ -39,7 +42,8 @@ auto main() -> int {
 
     for (auto i = 0; i < tree_model.materialCount; i++) {
         tree_model.materials[i].shader = tree_instancing_shader;
-        tree_model.materials[i].maps[MATERIAL_MAP_ALBEDO].texture = LoadTexture("resources/tree/treeDiffuse.png");
+        tree_model.materials[i].maps[MATERIAL_MAP_ALBEDO].texture =
+            LoadTexture(stratgame::unwrap(stratgame::get_asset_path("tree/treeDiffuse.png")).string().c_str());
     }
     auto tree_model_entity = stratgame::register_instanceable_model(registry, tree_model);
 
