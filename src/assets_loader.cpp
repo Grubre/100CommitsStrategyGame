@@ -1,9 +1,11 @@
-#include <filesystem>
+#include "error.hpp"
 #include <expected>
+#include <filesystem>
+#include <raylib.h>
 
 namespace stratgame {
 
-auto get_asset_path(const std::string& resource_path) -> std::expected<std::filesystem::path, std::string> {
+auto get_asset_path(const std::string &resource_path) -> Expected<std::filesystem::path> {
     // If we have a resources directory defined, use that
 #ifdef RESOURCES_DIR
     auto full_path = std::filesystem::path(RESOURCES_DIR) / resource_path;
@@ -12,7 +14,7 @@ auto get_asset_path(const std::string& resource_path) -> std::expected<std::file
     }
 #endif
 
-    // Otherwise, use the relative path
+    // Otherwise, try the path provided in the `resource_path` argument
     if (std::filesystem::exists(resource_path)) {
         return resource_path;
     }

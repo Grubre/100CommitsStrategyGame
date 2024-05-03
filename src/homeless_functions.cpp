@@ -4,6 +4,7 @@
 #include "minion.hpp"
 #include <raylib.h>
 
+namespace stratgame {
 void setup_raylib() {
 
     const auto display = GetCurrentMonitor();
@@ -42,3 +43,4 @@ auto setup_entt() -> entt::registry {
 
     return registry;
 }
+} // namespace stratgame

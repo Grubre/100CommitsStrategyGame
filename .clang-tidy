@@ -20,7 +20,8 @@ Checks: "*,
         -readability-magic-numbers,
         -cppcoreguidelines-pro-bounds-pointer-arithmetic,
         -cert-dcl16-c,
-        -concurrency-mt-unsafe
+        -concurrency-mt-unsafe,
+        -bugprone-easily-swappable-parameters
 "
 WarningsAsErrors: ''
 HeaderFilterRegex: ''
