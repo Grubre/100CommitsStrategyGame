@@ -6,6 +6,46 @@
 #include <vector>
 
 namespace stratgame {
+auto TerrainGenerator::generate_chunk(float x, float y, const SimplexNoise &noise) -> Chunk {
+    Chunk chunk{};
+    auto &mesh = chunk.mesh;
+
+    mesh.triangleCount = static_cast<int>((chunk_resolution - 1u) * (chunk_resolution - 1u) * 2u);
+    mesh.vertexCount = static_cast<int>(chunk_resolution * chunk_resolution);
+    mesh.vertices = static_cast<float *>(MemAlloc(static_cast<unsigned int>(mesh.vertexCount * 3) * sizeof(float)));
+    mesh.indices = static_cast<unsigned short *>(
+        MemAlloc(static_cast<unsigned int>(mesh.triangleCount * 3) * sizeof(unsigned short)));
+
+    for (auto i = 0llu; i < chunk_resolution; i++) {
+        for (auto j = 0llu; j < chunk_resolution; j++) {
+            const auto index = i * chunk_resolution + j;
+            mesh.vertices[index * 3] = static_cast<float>(j) * chunk_size;
+            mesh.vertices[index * 3 + 1] =
+                noise.fractal(2, x + static_cast<float>(j) / static_cast<float>(chunk_resolution),
+                              y + static_cast<float>(i) / static_cast<float>(chunk_resolution));
+            mesh.vertices[index * 3 + 2] = static_cast<float>(i) * chunk_size;
+        }
+    }
+
+    auto k = 0;
+
+    for (auto i = 0u; i < chunk_resolution - 1; i++) {
+        for (auto j = 0u; j < chunk_resolution - 1; j++) {
+            mesh.indices[k] = static_cast<unsigned short>(i * chunk_resolution + j);
+            mesh.indices[k + 1] = static_cast<unsigned short>((i + 1) * chunk_resolution + j);
+            mesh.indices[k + 2] = static_cast<unsigned short>((i + 1) * chunk_resolution + (j + 1));
+            mesh.indices[k + 3] = static_cast<unsigned short>(i * chunk_resolution + j);
+            mesh.indices[k + 4] = static_cast<unsigned short>((i + 1) * chunk_resolution + (j + 1));
+            mesh.indices[k + 5] = static_cast<unsigned short>(i * chunk_resolution + (j + 1));
+            k += 6; // next quad
+        }
+    }
+
+    UploadMesh(&mesh, false);
+
+    return chunk;
+}
+
 auto generate_terrain_mesh(uint32_t rows, uint32_t cols, const std::span<const float> heights,
                            float dist_between_vertices) -> Mesh {
     assert(static_cast<unsigned long>(rows * cols) == heights.size());
@@ -14,8 +54,9 @@ auto generate_terrain_mesh(uint32_t rows, uint32_t cols, const std::span<const f
 
     mesh.triangleCount = static_cast<int>((rows - 1u) * (cols - 1u) * 2u);
     mesh.vertexCount = static_cast<int>(rows * cols);
-    mesh.vertices = static_cast<float *>(MemAlloc(static_cast<unsigned int>(mesh.vertexCount* 3) * sizeof(float)));
-    mesh.indices = static_cast<unsigned short*>(MemAlloc(static_cast<unsigned int>(mesh.triangleCount * 3) * sizeof(unsigned short)));
+    mesh.vertices = static_cast<float *>(MemAlloc(static_cast<unsigned int>(mesh.vertexCount * 3) * sizeof(float)));
+    mesh.indices = static_cast<unsigned short *>(
+        MemAlloc(static_cast<unsigned int>(mesh.triangleCount * 3) * sizeof(unsigned short)));
 
     for (auto i = 0llu; i < rows; i++) {
         for (auto j = 0llu; j < cols; j++) {
@@ -69,17 +110,7 @@ auto generate_terrain_model(uint32_t rows, uint32_t cols) -> GeneratedTerrain {
     return {terrain, heights};
 }
 
-auto generate_terrain_shader(const std::filesystem::path &vert_path, const std::filesystem::path &frag_path,
-                             float height_scale) -> Shader {
-    if (!std::filesystem::exists(vert_path) || !std::filesystem::exists(frag_path)) {
-        std::cerr << "Could not find terrain shader files\n";
-        std::exit(1);
-    }
-
-    const auto buff_vert = vert_path.string();
-    const auto buff_frag = frag_path.string();
-    auto terrain_shader = LoadShader(buff_vert.c_str(), buff_frag.c_str());
-
+auto generate_terrain_shader(const Shader &terrain_shader, float height_scale) -> Shader {
     auto yellow_threshold_loc = GetShaderLocation(terrain_shader, "yellow_threshold");
     float yellow_threshold = 0.02f * height_scale;
     SetShaderValue(terrain_shader, yellow_threshold_loc, &yellow_threshold, SHADER_UNIFORM_FLOAT);
@@ -89,5 +120,11 @@ auto generate_terrain_shader(const std::filesystem::path &vert_path, const std::
     SetShaderValue(terrain_shader, white_threshold_loc, &white_threshold, SHADER_UNIFORM_FLOAT);
 
     return terrain_shader;
+}
+
+auto register_chunk(entt::registry &registry, const Chunk &chunk) -> entt::entity {
+    auto entity = registry.create();
+
+    return entity;
 }
 }; // namespace stratgame
