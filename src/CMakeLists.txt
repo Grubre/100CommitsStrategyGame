@@ -2,7 +2,8 @@ set(EXEC_NAME "main")
 set(RESOURCES_DIR "${CMAKE_SOURCE_DIR}/resources")
 
 add_executable(${EXEC_NAME} main.cpp camera.cpp terrain.cpp drawing.cpp
-                            systems.cpp minion.cpp tasks.cpp assets_loader.cpp)
+                            systems.cpp minion.cpp tasks.cpp assets_loader.cpp
+                            homeless_functions.cpp)
 
                         target_compile_definitions(${EXEC_NAME} PRIVATE RESOURCES_DIR="${RESOURCES_DIR}")
 
