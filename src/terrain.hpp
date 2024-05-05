@@ -11,6 +11,7 @@
 namespace stratgame {
 struct Chunk {
     Mesh mesh;
+    Vector3 transform;
 };
 
 struct TerrainGenerator {
@@ -18,7 +19,7 @@ struct TerrainGenerator {
     TerrainGenerator(uint32_t chunk_resolution, uint32_t chunk_size, const Shader &shader)
         : chunk_resolution(chunk_resolution), chunk_size(chunk_size), shader(shader) {}
 
-    auto generate_chunk(float x, float y, const SimplexNoise &noise) -> Chunk;
+    auto generate_chunk(float x, float y, const SimplexNoise &noise) const -> Chunk;
 
   private:
     uint32_t chunk_resolution;

@@ -1,13 +1,13 @@
 #include "terrain.hpp"
+#include "common_components.hpp"
+#include "drawing.hpp"
 #include <SimplexNoise.h>
 #include <cassert>
-#include <filesystem>
-#include <iostream>
 #include <vector>
 
 namespace stratgame {
-auto TerrainGenerator::generate_chunk(float x, float y, const SimplexNoise &noise) -> Chunk {
-    Chunk chunk{};
+auto TerrainGenerator::generate_chunk(float x, float y, const SimplexNoise &noise) const -> Chunk {
+    Chunk chunk{.transform = {x, 0.f, y}};
     auto &mesh = chunk.mesh;
 
     mesh.triangleCount = static_cast<int>((chunk_resolution - 1u) * (chunk_resolution - 1u) * 2u);
@@ -124,6 +124,10 @@ auto generate_terrain_shader(const Shader &terrain_shader, float height_scale) -
 
 auto register_chunk(entt::registry &registry, const Chunk &chunk) -> entt::entity {
     auto entity = registry.create();
+
+    const auto model = LoadModelFromMesh(chunk.mesh);
+    registry.emplace<stratgame::ModelComponent>(entity, model);
+    registry.emplace<stratgame::Transform>(entity, chunk.transform);
 
     return entity;
 }
