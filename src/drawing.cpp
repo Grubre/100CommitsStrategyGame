@@ -44,7 +44,7 @@ void create_model_instance(entt::registry &registry, entt::entity model_entity, 
     transforms.push_back(MatrixIdentity());
     registry.emplace<ModelInstance>(object_entity, instanceable_model.model_id, static_cast<int>(transforms.size()));
 
-    //std::cout << "Created new instance of model " << instanceable_model.model_id << ".\n";
+    // std::cout << "Created new instance of model " << instanceable_model.model_id << ".\n";
 }
 
 void draw_models_instanced(entt::registry &registry) {
