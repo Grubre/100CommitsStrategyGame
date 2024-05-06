@@ -3,6 +3,6 @@
 
 namespace stratgame {
 void setup_raylib();
-auto setup_entt() -> entt::registry;
+[[nodiscard]] auto setup_entt() -> entt::registry;
 
 }; // namespace stratgame

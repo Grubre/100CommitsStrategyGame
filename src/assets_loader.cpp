@@ -5,7 +5,7 @@
 
 namespace stratgame {
 
-auto get_asset_path(const std::string &resource_path) -> Expected<std::filesystem::path> {
+[[nodiscard]] auto get_asset_path(const std::filesystem::path &resource_path) -> Expected<std::filesystem::path> {
     // If we have a resources directory defined, use that
 #ifdef RESOURCES_DIR
     auto full_path = std::filesystem::path(RESOURCES_DIR) / resource_path;
@@ -19,7 +19,7 @@ auto get_asset_path(const std::string &resource_path) -> Expected<std::filesyste
         return resource_path;
     }
 
-    return std::unexpected("Resource not found: " + resource_path);
+    return std::unexpected("Resource not found: " / resource_path);
 }
 
 } // namespace stratgame

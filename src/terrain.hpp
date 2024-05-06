@@ -27,7 +27,7 @@ struct TerrainGenerator {
     Shader shader;
 };
 
-auto generate_terrain_mesh(uint32_t rows, uint32_t cols, const std::span<const float> heights,
+[[nodiscard]] auto generate_terrain_mesh(uint32_t rows, uint32_t cols, const std::span<const float> heights,
                            float dist_between_vertices = 2.0f) -> Mesh;
 
 struct GeneratedTerrain {
@@ -40,9 +40,9 @@ struct TerrainClick {
     std::optional<Vector2> position;
 };
 
-auto generate_terrain_model(uint32_t rows, uint32_t cols) -> GeneratedTerrain;
+[[nodiscard]] auto generate_terrain_model(uint32_t rows, uint32_t cols) -> GeneratedTerrain;
 
-auto generate_terrain_shader(const Shader &terrain_shader, float height_scale) -> Shader;
+[[nodiscard]] auto generate_terrain_shader(const Shader &terrain_shader, float height_scale) -> Shader;
 
 // ==================================================================
 // entt integration

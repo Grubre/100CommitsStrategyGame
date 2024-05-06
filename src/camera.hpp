@@ -51,7 +51,7 @@ struct Camera {
     void keep_zoom_bounds() { zoom = std::clamp(zoom, min_zoom, max_zoom); }
 };
 
-auto create_camera(entt::registry &registry) -> entt::entity;
+[[nodiscard]] auto create_camera(entt::registry &registry) -> entt::entity;
 
 void handle_camera_input(entt::registry &registry);
 void update_camera(entt::registry &registry);
