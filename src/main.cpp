@@ -62,9 +62,9 @@ auto main() -> int {
     stratgame::register_team(registry, RED);
     stratgame::register_team(registry, BLUE);
 
-    // for (auto i = 0; i < 10; i++) {
-    //     stratgame::create_minion(registry, {static_cast<float>(i * 2), static_cast<float>(i * 2)}, rand() % 2);
-    // }
+    for (auto i = 0; i < 10; i++) {
+        stratgame::create_minion(registry, {static_cast<float>(i * 2), static_cast<float>(i * 2)}, rand() % 2);
+    }
 
     bool toggle_wireframe = false;
     GuiLoadStyleDefault();

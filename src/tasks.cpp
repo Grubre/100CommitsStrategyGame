@@ -58,15 +58,9 @@ void tasks_from_input(entt::registry &registry) {
     const auto terrain_click = registry.get<stratgame::TerrainClick>(terrain_entity);
     if (terrain_click.position) {
         if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON)) {
-            auto selected_minions = registry.view<stratgame::Minion, stratgame::Selectable>();
+            auto selected_minions = registry.view<stratgame::Minion, stratgame::Selected>();
 
             for (auto minion : selected_minions) {
-                const auto selected = registry.get<stratgame::Selectable>(minion).selected;
-
-                if (!selected) {
-                    continue;
-                }
-
                 add_task(registry, minion, stratgame::WalkToTask{*terrain_click.position, 5.f});
             }
         }

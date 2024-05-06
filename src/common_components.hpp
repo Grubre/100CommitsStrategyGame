@@ -20,6 +20,10 @@ struct Selectable {
     bool selected{false};
 };
 
+struct Selected {
+    
+};
+
 struct SelectedState {
     int32_t selected_entities_count = 0u;
 };

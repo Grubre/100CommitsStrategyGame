@@ -61,6 +61,24 @@ auto setup_entt() -> entt::registry {
         registry.emplace<stratgame::ModelComponent>(entity, model);
     }>();
 
+    registry.on_construct<Selected>().connect<[](entt::registry &registry, entt::entity entity) {
+        if (registry.all_of<Minion, ModelComponent>(entity)) {
+            auto model = registry.get<ModelComponent>(entity);
+            model.model.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = GREEN;
+        };
+    }>();
+
+    registry.on_destroy<Selected>().connect<[](entt::registry &registry, entt::entity entity) {
+        if (registry.all_of<Minion, ModelComponent>(entity)) {
+            auto minion = registry.get<Minion>(entity);
+            auto model = registry.get<ModelComponent>(entity);
+            const auto team_color_map_entity = registry.view<stratgame::team_color_map>().begin()[0];
+            const auto &team_colors = registry.get<stratgame::team_color_map>(team_color_map_entity);
+            const auto color = team_colors.at(minion.team_id);
+            model.model.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = color;
+        };
+    }>();
+
     return registry;
 }
 
@@ -87,14 +105,22 @@ void handle_mouse_input(entt::registry &registry) {
             const auto minion_hit = GetRayCollisionSphere(ray, transform.position, 1.f);
 
             if (minion_hit.hit) {
-                registry.patch<stratgame::Selectable>(minion, [&](stratgame::Selectable &selectable) {
-                    selectable.selected = !selectable.selected;
+                auto selected_minions = registry.view<Selected>();
+                if (!IsKeyDown(KEY_LEFT_SHIFT)) {
+                    for (auto selected_minion : selected_minions) {
+                        registry.erase<Selected>(selected_minion);
+                    }
+                }   
+                registry.emplace<Selected>(minion);
+                break;
+                // registry.patch<stratgame::Selectable>(minion, [&](stratgame::Selectable &selectable) {
+                //     selectable.selected = !selectable.selected;
 
-                    registry.patch<SelectedState>(registry.view<SelectedState>().begin()[0],
-                                                  [&](SelectedState &selected) {
-                                                      selected.selected_entities_count += selectable.selected ? 1 : -1;
-                                                  });
-                });
+                //     registry.patch<SelectedState>(registry.view<SelectedState>().begin()[0],
+                //                                   [&](SelectedState &selected) {
+                //                                       selected.selected_entities_count += selectable.selected ? 1 : -1;
+                //                                   });
+                // });
             }
         }
     }
