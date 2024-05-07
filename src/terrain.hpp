@@ -16,19 +16,20 @@ struct Chunk {
 
 struct TerrainGenerator {
   public:
-    TerrainGenerator(uint32_t chunk_resolution, uint32_t chunk_size, const Shader &shader)
-        : chunk_resolution(chunk_resolution), chunk_size(chunk_size), shader(shader) {}
+    TerrainGenerator(SimplexNoise noise, uint32_t chunk_resolution, uint32_t chunk_size, const Shader &shader)
+        : noise(noise), chunk_resolution(chunk_resolution), chunk_size(chunk_size), shader(shader) {}
 
-    auto generate_chunk(float x, float y, const SimplexNoise &noise) const -> Chunk;
+    [[nodiscard]] auto generate_chunk(std::int64_t x, std::int64_t y) const -> Chunk;
 
   private:
+    SimplexNoise noise;
     uint32_t chunk_resolution;
     uint32_t chunk_size;
     Shader shader;
 };
 
 [[nodiscard]] auto generate_terrain_mesh(uint32_t rows, uint32_t cols, const std::span<const float> heights,
-                           float dist_between_vertices = 2.0f) -> Mesh;
+                                         float dist_between_vertices = 2.0f) -> Mesh;
 
 struct GeneratedTerrain {
     using Heights = std::vector<float>;

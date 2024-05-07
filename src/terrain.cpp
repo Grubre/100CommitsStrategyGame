@@ -6,8 +6,8 @@
 #include <vector>
 
 namespace stratgame {
-auto TerrainGenerator::generate_chunk(float x, float y, const SimplexNoise &noise) const -> Chunk {
-    Chunk chunk{.transform = {x, 0.f, y}};
+auto TerrainGenerator::generate_chunk(std::int64_t x, std::int64_t y) const -> Chunk {
+    Chunk chunk{.transform = {static_cast<float>(x * chunk_size), 0.f, static_cast<float>(y * chunk_size)}};
     auto &mesh = chunk.mesh;
 
     mesh.triangleCount = static_cast<int>((chunk_resolution - 1u) * (chunk_resolution - 1u) * 2u);
@@ -16,13 +16,16 @@ auto TerrainGenerator::generate_chunk(float x, float y, const SimplexNoise &nois
     mesh.indices = static_cast<unsigned short *>(
         MemAlloc(static_cast<unsigned int>(mesh.triangleCount * 3) * sizeof(unsigned short)));
 
+    const auto noise_offset_x = static_cast<float>(x * chunk_size);
+    const auto noise_offset_y = static_cast<float>(y * chunk_size);
+
     for (auto i = 0llu; i < chunk_resolution; i++) {
         for (auto j = 0llu; j < chunk_resolution; j++) {
             const auto index = i * chunk_resolution + j;
             mesh.vertices[index * 3] = static_cast<float>(j) * chunk_size;
             mesh.vertices[index * 3 + 1] =
-                noise.fractal(2, x + static_cast<float>(j) / static_cast<float>(chunk_resolution),
-                              y + static_cast<float>(i) / static_cast<float>(chunk_resolution));
+                noise.fractal(2, noise_offset_x + static_cast<float>(j) / static_cast<float>(chunk_resolution),
+                              noise_offset_y + static_cast<float>(i) / static_cast<float>(chunk_resolution));
             mesh.vertices[index * 3 + 2] = static_cast<float>(i) * chunk_size;
         }
     }
