@@ -5,31 +5,38 @@
 #include <entt.hpp>
 #include <optional>
 #include <raylib.h>
-#include <span>
 #include <vector>
 
 namespace stratgame {
 struct Chunk {
-    Mesh mesh;
-    Vector3 transform;
+    Model model;
+
+    ~Chunk() { UnloadModel(model); }
 };
 
 struct TerrainGenerator {
   public:
     TerrainGenerator(SimplexNoise noise, uint32_t chunk_resolution, uint32_t chunk_size, const Shader &shader)
-        : noise(noise), chunk_resolution(chunk_resolution), chunk_size(chunk_size), shader(shader) {}
+        : noise(noise), shader(shader), chunk_size(chunk_size), chunk_vertex_cnt(chunk_resolution) {}
 
     [[nodiscard]] auto generate_chunk(std::int64_t x, std::int64_t y) const -> Chunk;
+    auto register_chunk(entt::registry &registry, const Chunk &chunk) const -> entt::entity;
+
+    [[nodiscard]] auto get_noise() const -> const SimplexNoise & { return noise; }
 
   private:
     SimplexNoise noise;
-    uint32_t chunk_resolution;
-    uint32_t chunk_size;
     Shader shader;
-};
 
-[[nodiscard]] auto generate_terrain_mesh(uint32_t rows, uint32_t cols, const std::span<const float> heights,
-                                         float dist_between_vertices = 2.0f) -> Mesh;
+    uint32_t chunk_size;       /// size of the chunk in world units
+    uint32_t chunk_vertex_cnt; /// number of vertices per row/col
+
+    [[nodiscard]] constexpr auto dist_between_vertices() const -> float {
+        return static_cast<float>(chunk_size) / static_cast<float>(chunk_vertex_cnt);
+    }
+
+    [[nodiscard]] auto generate_flat_chunk_mesh() const -> Mesh;
+};
 
 struct GeneratedTerrain {
     using Heights = std::vector<float>;
@@ -41,12 +48,6 @@ struct TerrainClick {
     std::optional<Vector2> position;
 };
 
-[[nodiscard]] auto generate_terrain_model(uint32_t rows, uint32_t cols) -> GeneratedTerrain;
-
 [[nodiscard]] auto generate_terrain_shader(const Shader &terrain_shader, float height_scale) -> Shader;
 
-// ==================================================================
-// entt integration
-// ==================================================================
-auto register_chunk(entt::registry &registry, const Chunk &chunk) -> entt::entity;
 }; // namespace stratgame

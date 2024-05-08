@@ -2,83 +2,56 @@
 #include "common_components.hpp"
 #include "drawing.hpp"
 #include <SimplexNoise.h>
-#include <cassert>
-#include <vector>
+#include <raymath.h>
 
 namespace stratgame {
 auto TerrainGenerator::generate_chunk(std::int64_t x, std::int64_t y) const -> Chunk {
-    Chunk chunk{.transform = {static_cast<float>(x * chunk_size), 0.f, static_cast<float>(y * chunk_size)}};
-    auto &mesh = chunk.mesh;
+    const auto transform = Vector3{static_cast<float>(x * chunk_size), 0.f, static_cast<float>(y * chunk_size)};
+    auto mesh = generate_flat_chunk_mesh();
 
-    mesh.triangleCount = static_cast<int>((chunk_resolution - 1u) * (chunk_resolution - 1u) * 2u);
-    mesh.vertexCount = static_cast<int>(chunk_resolution * chunk_resolution);
-    mesh.vertices = static_cast<float *>(MemAlloc(static_cast<unsigned int>(mesh.vertexCount * 3) * sizeof(float)));
-    mesh.indices = static_cast<unsigned short *>(
-        MemAlloc(static_cast<unsigned int>(mesh.triangleCount * 3) * sizeof(unsigned short)));
+    Model model = LoadModelFromMesh(mesh);
+    model.transform = MatrixTranslate(transform.x, transform.y, transform.z);
 
-    const auto noise_offset_x = static_cast<float>(x * chunk_size);
-    const auto noise_offset_y = static_cast<float>(y * chunk_size);
-
-    for (auto i = 0llu; i < chunk_resolution; i++) {
-        for (auto j = 0llu; j < chunk_resolution; j++) {
-            const auto index = i * chunk_resolution + j;
-            mesh.vertices[index * 3] = static_cast<float>(j) * chunk_size;
-            mesh.vertices[index * 3 + 1] =
-                noise.fractal(2, noise_offset_x + static_cast<float>(j) / static_cast<float>(chunk_resolution),
-                              noise_offset_y + static_cast<float>(i) / static_cast<float>(chunk_resolution));
-            mesh.vertices[index * 3 + 2] = static_cast<float>(i) * chunk_size;
-        }
-    }
-
-    auto k = 0;
-
-    for (auto i = 0u; i < chunk_resolution - 1; i++) {
-        for (auto j = 0u; j < chunk_resolution - 1; j++) {
-            mesh.indices[k] = static_cast<unsigned short>(i * chunk_resolution + j);
-            mesh.indices[k + 1] = static_cast<unsigned short>((i + 1) * chunk_resolution + j);
-            mesh.indices[k + 2] = static_cast<unsigned short>((i + 1) * chunk_resolution + (j + 1));
-            mesh.indices[k + 3] = static_cast<unsigned short>(i * chunk_resolution + j);
-            mesh.indices[k + 4] = static_cast<unsigned short>((i + 1) * chunk_resolution + (j + 1));
-            mesh.indices[k + 5] = static_cast<unsigned short>(i * chunk_resolution + (j + 1));
-            k += 6; // next quad
-        }
-    }
-
-    UploadMesh(&mesh, false);
-
-    return chunk;
+    return Chunk{.model = model};
 }
 
-auto generate_terrain_mesh(uint32_t rows, uint32_t cols, const std::span<const float> heights,
-                           float dist_between_vertices) -> Mesh {
-    assert(static_cast<unsigned long>(rows * cols) == heights.size());
+auto TerrainGenerator::register_chunk(entt::registry &registry, const Chunk &chunk) const -> entt::entity {
+    auto entity = registry.create();
 
-    auto mesh = Mesh{};
+    registry.emplace<stratgame::ModelComponent>(entity, chunk.model);
+    registry.emplace<stratgame::Transform>(entity, Vector3Transform(Vector3{0.f, 0.f, 0.f}, chunk.model.transform));
+    registry.emplace<stratgame::DrawModelWireframeComponent>(entity);
 
-    mesh.triangleCount = static_cast<int>((rows - 1u) * (cols - 1u) * 2u);
-    mesh.vertexCount = static_cast<int>(rows * cols);
+    return entity;
+}
+auto TerrainGenerator::generate_flat_chunk_mesh() const -> Mesh {
+    Mesh mesh;
+
+    mesh.triangleCount = static_cast<int>((chunk_vertex_cnt - 1u) * (chunk_vertex_cnt - 1u) * 2u);
+    mesh.vertexCount = static_cast<int>(chunk_vertex_cnt * chunk_vertex_cnt);
     mesh.vertices = static_cast<float *>(MemAlloc(static_cast<unsigned int>(mesh.vertexCount * 3) * sizeof(float)));
     mesh.indices = static_cast<unsigned short *>(
         MemAlloc(static_cast<unsigned int>(mesh.triangleCount * 3) * sizeof(unsigned short)));
 
-    for (auto i = 0llu; i < rows; i++) {
-        for (auto j = 0llu; j < cols; j++) {
-            const auto index = i * cols + j;
-            mesh.vertices[index * 3] = static_cast<float>(j) * dist_between_vertices;
-            mesh.vertices[index * 3 + 1] = heights[index];
-            mesh.vertices[index * 3 + 2] = static_cast<float>(i) * dist_between_vertices;
+    for (auto i = 0llu; i < chunk_vertex_cnt; i++) {
+        for (auto j = 0llu; j < chunk_vertex_cnt; j++) {
+            const auto index = i * chunk_vertex_cnt + j;
+            mesh.vertices[index * 3] = static_cast<float>(j) * dist_between_vertices();
+            mesh.vertices[index * 3 + 1] = 0.f;
+            mesh.vertices[index * 3 + 2] = static_cast<float>(i) * dist_between_vertices();
         }
     }
 
     auto k = 0;
-    for (auto i = 0u; i < rows - 1; i++) {
-        for (auto j = 0u; j < cols - 1; j++) {
-            mesh.indices[k] = static_cast<unsigned short>(i * cols + j);
-            mesh.indices[k + 1] = static_cast<unsigned short>((i + 1) * cols + j);
-            mesh.indices[k + 2] = static_cast<unsigned short>((i + 1) * cols + (j + 1));
-            mesh.indices[k + 3] = static_cast<unsigned short>(i * cols + j);
-            mesh.indices[k + 4] = static_cast<unsigned short>((i + 1) * cols + (j + 1));
-            mesh.indices[k + 5] = static_cast<unsigned short>(i * cols + (j + 1));
+
+    for (auto i = 0u; i < chunk_vertex_cnt - 1; i++) {
+        for (auto j = 0u; j < chunk_vertex_cnt - 1; j++) {
+            mesh.indices[k] = static_cast<unsigned short>(i * chunk_vertex_cnt + j);
+            mesh.indices[k + 1] = static_cast<unsigned short>((i + 1) * chunk_vertex_cnt + j);
+            mesh.indices[k + 2] = static_cast<unsigned short>((i + 1) * chunk_vertex_cnt + (j + 1));
+            mesh.indices[k + 3] = static_cast<unsigned short>(i * chunk_vertex_cnt + j);
+            mesh.indices[k + 4] = static_cast<unsigned short>((i + 1) * chunk_vertex_cnt + (j + 1));
+            mesh.indices[k + 5] = static_cast<unsigned short>(i * chunk_vertex_cnt + (j + 1));
             k += 6; // next quad
         }
     }
@@ -86,31 +59,6 @@ auto generate_terrain_mesh(uint32_t rows, uint32_t cols, const std::span<const f
     UploadMesh(&mesh, false);
 
     return mesh;
-}
-
-auto generate_terrain_model(uint32_t rows, uint32_t cols) -> GeneratedTerrain {
-    auto heights = std::vector<float>(static_cast<uint32_t>(rows * cols));
-
-    auto height_scale = 5.f;
-
-    const auto noise = SimplexNoise();
-
-    const auto chunk_size = 48;
-
-    for (uint32_t i = 0; i < rows; i++) {
-        for (uint32_t j = 0; j < cols; j++) {
-            const auto index = i * cols + j;
-            const auto x = static_cast<float>(j) / static_cast<float>(chunk_size);
-            const auto y = static_cast<float>(i) / static_cast<float>(chunk_size);
-            heights[index] = noise.fractal(2, x, y) * height_scale;
-        }
-    }
-
-    auto terrain_mesh = generate_terrain_mesh(rows, cols, heights, 1.0f);
-
-    auto terrain = LoadModelFromMesh(terrain_mesh);
-
-    return {terrain, heights};
 }
 
 auto generate_terrain_shader(const Shader &terrain_shader, float height_scale) -> Shader {
@@ -125,13 +73,4 @@ auto generate_terrain_shader(const Shader &terrain_shader, float height_scale) -
     return terrain_shader;
 }
 
-auto register_chunk(entt::registry &registry, const Chunk &chunk) -> entt::entity {
-    auto entity = registry.create();
-
-    const auto model = LoadModelFromMesh(chunk.mesh);
-    registry.emplace<stratgame::ModelComponent>(entity, model);
-    registry.emplace<stratgame::Transform>(entity, chunk.transform);
-
-    return entity;
-}
 }; // namespace stratgame

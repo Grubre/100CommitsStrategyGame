@@ -1,4 +1,5 @@
 #include "homeless_functions.hpp"
+#include "assets_loader.hpp"
 #include "common_components.hpp"
 #include "drawing.hpp"
 #include "minion.hpp"
@@ -60,5 +61,34 @@ auto setup_entt() -> entt::registry {
     }>();
 
     return registry;
+}
+
+void setup_tree(entt::registry & /*registry*/) {
+    const auto tree_model = stratgame::load_asset(LoadModel, "tree/tree.gltf");
+    const auto tree_instancing_shader =
+        stratgame::load_asset(LoadShader, "shaders/instancing.vs", "shaders/instancing.fs");
+    tree_instancing_shader.locs[SHADER_LOC_MATRIX_MVP] = GetShaderLocation(tree_instancing_shader, "mvp");
+    tree_instancing_shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(tree_instancing_shader, "viewPos");
+    tree_instancing_shader.locs[SHADER_LOC_MATRIX_MODEL] =
+        GetShaderLocationAttrib(tree_instancing_shader, "instanceTransform");
+
+    for (auto i = 0; i < tree_model.materialCount; i++) {
+        tree_model.materials[i].shader = tree_instancing_shader;
+        tree_model.materials[i].maps[MATERIAL_MAP_ALBEDO].texture =
+            stratgame::load_asset(LoadTexture, "tree/treeDiffuse.png");
+    }
+    // auto tree_model_entity = stratgame::register_instanceable_model(registry, tree_model);
+    //
+    // for (int i = 0; i < 50; i++) {
+    //     for (int j = 0; j < 50; j++) {
+    //         const auto height = heights[4 * i + 4 * j * 200];
+    //         const auto x_offset = ((float)rand() / RAND_MAX) * 2 - 1;
+    //         const auto z_offset = ((float)rand() / RAND_MAX) * 2 - 1;
+    //         const auto tree_entity = registry.create();
+    //         stratgame::create_model_instance(registry, tree_model_entity,
+    //                                          Vector3{4 * (float)i + x_offset, height, 4 * (float)j + z_offset},
+    //                                          tree_entity);
+    //     }
+    // }
 }
 } // namespace stratgame
