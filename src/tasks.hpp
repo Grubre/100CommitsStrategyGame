@@ -33,7 +33,7 @@ struct TaskQueue {
     std::deque<Task> m_tasks;
 };
 
-void add_task(entt::registry &registry, entt::entity entity, Task task);
+void add_task(entt::registry &registry, const entt::entity entity, const Task& task);
 void update_tasks(entt::registry &registry);
 void tasks_from_input(entt::registry &registry);
 

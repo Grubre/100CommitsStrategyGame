@@ -11,7 +11,7 @@ namespace stratgame {
 
 template <typename Func, typename... Args>
     requires std::invocable<Func, Args...>
-[[nodiscard]] auto load_asset(Func func, Args &&...args) {
+[[nodiscard]] constexpr auto load_asset(Func func, Args &&...args) {
     static_assert((std::is_convertible_v<Args, std::string> && ...),
                   "All arguments must be convertible to std::string");
     return func(unwrap(get_asset_path(std::forward<Args>(args))).string().c_str()...);

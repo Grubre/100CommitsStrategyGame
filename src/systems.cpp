@@ -27,7 +27,7 @@ void handle_input(entt::registry &registry) {
 
 void handle_mouse_input(entt::registry &registry) {
     const auto terrain_entity = registry.view<stratgame::TerrainClick>().begin()[0];
-    const auto terrain = registry.get<stratgame::ModelComponent>(terrain_entity);
+    const auto &terrain = registry.get<stratgame::ModelComponent>(terrain_entity);
     const auto camera_entity = registry.view<stratgame::Camera>().begin()[0];
     const auto &camera = registry.get<stratgame::Camera>(camera_entity);
 

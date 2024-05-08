@@ -9,7 +9,7 @@ namespace stratgame {
 [[nodiscard]] auto get_asset_path(const std::filesystem::path &resource_path) -> Expected<std::filesystem::path> {
     // If we have a resources directory defined, use that
 #ifdef RESOURCES_DIR
-    auto full_path = std::filesystem::path(RESOURCES_DIR) / resource_path;
+    const auto full_path = std::filesystem::path(RESOURCES_DIR) / resource_path;
     if (std::filesystem::exists(full_path)) {
         return full_path;
     }

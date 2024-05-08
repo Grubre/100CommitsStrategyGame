@@ -13,14 +13,14 @@ constexpr static auto default_raylib_camera = Camera3D{.position = Vector3{0.0f,
                                                        .projection = CAMERA_PERSPECTIVE};
 
 auto create_camera(entt::registry &registry) -> entt::entity {
-    auto entity = registry.create();
+    const auto entity = registry.create();
     const auto raylib_camera = default_raylib_camera;
     registry.emplace<stratgame::Camera>(entity, raylib_camera);
     return entity;
 }
 
 void handle_camera_input(entt::registry &registry) {
-    auto view = registry.view<stratgame::Camera>();
+    const auto view = registry.view<stratgame::Camera>();
     for (auto entity : view) {
         auto &camera = view.get<stratgame::Camera>(entity);
 
@@ -98,7 +98,7 @@ void handle_camera_input(entt::registry &registry) {
 }
 
 void update_camera(entt::registry &registry) {
-    auto view = registry.view<stratgame::Camera>();
+    const auto view = registry.view<stratgame::Camera>();
     for (auto entity : view) {
         auto &camera = view.get<stratgame::Camera>(entity);
         auto &camera3d = camera.camera3d;
@@ -108,12 +108,6 @@ void update_camera(entt::registry &registry) {
 
         camera3d.target = camera.get_target_position();
         camera3d.position = camera.get_source_position();
-
-        // printf("%f %f ", camera.target_position.x, camera.target_position.y);
-
-        // printf("%f %f", camera.pitch, camera.yaw);
-
-        // printf("%f %f %f", camera3d.position.x, camera3d.position.y, camera3d.position.z);
     }
 }
 

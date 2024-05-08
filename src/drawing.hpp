@@ -15,8 +15,9 @@ struct ShaderComponent {
 // requires ModelComponent
 struct DrawModelWireframeComponent {};
 
-void draw_models(entt::registry &registry);
-void draw_model_wireframes(entt::registry &registry);
+void draw_models(const entt::registry &registry);
+void draw_model_wireframes(const entt::registry &registry);
+void draw_models_instanced(entt::registry &registry); // not const because updates the model transform members to 'Transform' components values
 
 struct InstanceableModel {
     int model_id;
@@ -32,5 +33,4 @@ struct ModelInstance {
 auto register_instanceable_model(entt::registry &registry, const Model &model) -> entt::entity;
 void create_model_instance(entt::registry &registry, entt::entity model_entity, Vector3 transform,
                            entt::entity object_entity);
-void draw_models_instanced(entt::registry &registry);
 }; // namespace stratgame

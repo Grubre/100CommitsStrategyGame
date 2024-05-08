@@ -5,7 +5,7 @@
 namespace stratgame {
 
 auto create_minion(entt::registry &registry, Vector2 position, int team_id) -> entt::entity {
-    auto entity = registry.create();
+    const auto entity = registry.create();
     registry.emplace<stratgame::Minion>(entity, team_id);
 
     auto &transform = registry.get<stratgame::Transform>(entity);
@@ -16,7 +16,7 @@ auto create_minion(entt::registry &registry, Vector2 position, int team_id) -> e
 
 void update_minion_heights(entt::registry &registry) {
     const auto height_entity = registry.view<const stratgame::GeneratedTerrain::Heights>();
-    const auto heights = registry.get<stratgame::GeneratedTerrain::Heights>(*height_entity.begin());
+    const auto &heights = registry.get<stratgame::GeneratedTerrain::Heights>(*height_entity.begin());
 
     auto minions = registry.view<stratgame::Minion>();
 

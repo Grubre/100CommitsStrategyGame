@@ -7,7 +7,7 @@
 
 namespace stratgame {
 
-void add_task(entt::registry &registry, entt::entity entity, Task task) {
+void add_task(entt::registry &registry, const entt::entity entity, const Task& task) {
     if (!registry.all_of<TaskQueue>(entity)) {
         registry.emplace<TaskQueue>(entity);
     }
@@ -33,7 +33,7 @@ void update_tasks(entt::registry &registry) {
         const auto &task = task_queue.current_task();
 
         if (std::holds_alternative<WalkToTask>(task)) {
-            const auto walk_to_task = std::get<WalkToTask>(task);
+            const auto &walk_to_task = std::get<WalkToTask>(task);
             const auto target = Vector3{walk_to_task.target.x, 0, walk_to_task.target.y};
 
             const auto diff_to_target = Vector3Subtract(target, transform.position);
@@ -54,11 +54,11 @@ void update_tasks(entt::registry &registry) {
 }
 
 void tasks_from_input(entt::registry &registry) {
-    const auto terrain_entity = registry.view<stratgame::TerrainClick>().begin()[0];
-    const auto terrain_click = registry.get<stratgame::TerrainClick>(terrain_entity);
+    const auto terrain_entity = registry.view<const stratgame::TerrainClick>().begin()[0];
+    const auto &terrain_click = registry.get<const stratgame::TerrainClick>(terrain_entity);
     if (terrain_click.position) {
         if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON)) {
-            auto selected_minions = registry.view<stratgame::Minion, stratgame::Selected>();
+            auto selected_minions = registry.view<const stratgame::Minion, const stratgame::Selected>();
 
             for (auto minion : selected_minions) {
                 add_task(registry, minion, stratgame::WalkToTask{*terrain_click.position, 5.f});

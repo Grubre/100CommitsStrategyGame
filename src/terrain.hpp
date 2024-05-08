@@ -17,7 +17,7 @@ struct TerrainGenerator {
     TerrainGenerator(SimplexNoise noise, uint32_t chunk_resolution, uint32_t chunk_size, const Shader &shader)
         : noise(noise), shader(shader), chunk_size(chunk_size), chunk_vertex_cnt(chunk_resolution) {}
 
-    [[nodiscard]] auto generate_chunk(std::int64_t x, std::int64_t y) const -> Chunk;
+    [[nodiscard]] auto generate_chunk(const std::int64_t x, const std::int64_t y) const -> Chunk;
     auto register_chunk(entt::registry &registry, const Chunk &chunk) const -> entt::entity;
 
     [[nodiscard]] auto get_noise() const -> const SimplexNoise & { return noise; }

@@ -6,7 +6,7 @@
 #include <raymath.h>
 
 namespace stratgame {
-auto TerrainGenerator::generate_chunk(std::int64_t x, std::int64_t y) const -> Chunk {
+auto TerrainGenerator::generate_chunk(const std::int64_t x, const std::int64_t y) const -> Chunk {
     const auto transform = Vector3{static_cast<float>(x * chunk_size), 0.f, static_cast<float>(y * chunk_size)};
     auto mesh = generate_flat_chunk_mesh();
 
@@ -17,7 +17,7 @@ auto TerrainGenerator::generate_chunk(std::int64_t x, std::int64_t y) const -> C
 }
 
 auto TerrainGenerator::register_chunk(entt::registry &registry, const Chunk &chunk) const -> entt::entity {
-    auto entity = registry.create();
+    const auto entity = registry.create();
 
     registry.emplace<stratgame::ModelComponent>(entity, chunk.model);
     registry.emplace<stratgame::Transform>(entity, Vector3Transform(Vector3{0.f, 0.f, 0.f}, chunk.model.transform));
@@ -63,13 +63,13 @@ auto TerrainGenerator::generate_flat_chunk_mesh() const -> Mesh {
     return mesh;
 }
 
-auto generate_terrain_shader(const Shader &terrain_shader, float height_scale) -> Shader {
-    auto yellow_threshold_loc = GetShaderLocation(terrain_shader, "yellow_threshold");
-    float yellow_threshold = 0.02f * height_scale;
+auto generate_terrain_shader(const Shader &terrain_shader, const float height_scale) -> Shader {
+    const auto yellow_threshold_loc = GetShaderLocation(terrain_shader, "yellow_threshold");
+    const float yellow_threshold = 0.02f * height_scale;
     SetShaderValue(terrain_shader, yellow_threshold_loc, &yellow_threshold, SHADER_UNIFORM_FLOAT);
 
-    auto white_threshold_loc = GetShaderLocation(terrain_shader, "white_threshold");
-    float white_threshold = 0.7f * height_scale;
+    const auto white_threshold_loc = GetShaderLocation(terrain_shader, "white_threshold");
+    const float white_threshold = 0.7f * height_scale;
     SetShaderValue(terrain_shader, white_threshold_loc, &white_threshold, SHADER_UNIFORM_FLOAT);
 
     return terrain_shader;
