@@ -10,8 +10,6 @@
 namespace stratgame {
 struct Chunk {
     Model model;
-
-    ~Chunk() { UnloadModel(model); }
 };
 
 struct TerrainGenerator {

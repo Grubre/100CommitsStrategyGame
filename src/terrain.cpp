@@ -2,6 +2,7 @@
 #include "common_components.hpp"
 #include "drawing.hpp"
 #include <SimplexNoise.h>
+#include <iostream>
 #include <raymath.h>
 
 namespace stratgame {
@@ -20,12 +21,13 @@ auto TerrainGenerator::register_chunk(entt::registry &registry, const Chunk &chu
 
     registry.emplace<stratgame::ModelComponent>(entity, chunk.model);
     registry.emplace<stratgame::Transform>(entity, Vector3Transform(Vector3{0.f, 0.f, 0.f}, chunk.model.transform));
+    registry.emplace<stratgame::ShaderComponent>(entity, shader);
     registry.emplace<stratgame::DrawModelWireframeComponent>(entity);
 
     return entity;
 }
 auto TerrainGenerator::generate_flat_chunk_mesh() const -> Mesh {
-    Mesh mesh;
+    Mesh mesh{};
 
     mesh.triangleCount = static_cast<int>((chunk_vertex_cnt - 1u) * (chunk_vertex_cnt - 1u) * 2u);
     mesh.vertexCount = static_cast<int>(chunk_vertex_cnt * chunk_vertex_cnt);
