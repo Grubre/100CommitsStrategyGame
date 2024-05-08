@@ -1,4 +1,5 @@
 #include "error.hpp"
+#include "assets_loader.hpp"
 #include <expected>
 #include <filesystem>
 #include <raylib.h>
@@ -19,7 +20,7 @@ namespace stratgame {
         return resource_path;
     }
 
-    return std::unexpected("Resource not found: " / resource_path);
+    return std::unexpected(std::string{"Resource not found: "} + resource_path.string());
 }
 
 } // namespace stratgame
