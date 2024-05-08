@@ -20,7 +20,7 @@ void update_transform(entt::registry &registry) {
 }
 
 void handle_input(entt::registry &registry) {
-    stratgame::handle_mouse_input(registry);
+    // stratgame::handle_mouse_input(registry);
     stratgame::handle_camera_input(registry);
     stratgame::tasks_from_input(registry);
 }

@@ -22,6 +22,11 @@ auto main() -> int {
 
     auto terrain_shader = stratgame::generate_terrain_shader(
         stratgame::load_asset(LoadShader, "shaders/terrain.vs", "shaders/terrain.fs"), 5.0f);
+    auto noise = SimplexNoise();
+    auto terrain_generator = stratgame::TerrainGenerator(noise, 16, 16, terrain_shader);
+
+    auto chunk = terrain_generator.generate_chunk(0,0);
+    auto chunk_entity = terrain_generator.register_chunk(registry, chunk);
 
     registry.emplace<stratgame::TerrainClick>(world_entity);
 
@@ -48,7 +53,7 @@ auto main() -> int {
         stratgame::handle_input(registry);
         stratgame::update_transform(registry);
         stratgame::update_camera(registry);
-        stratgame::update_minion_heights(registry);
+        // stratgame::update_minion_heights(registry);
         stratgame::update_tasks(registry);
 
         // ======================================
