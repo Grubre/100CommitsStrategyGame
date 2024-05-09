@@ -7,7 +7,7 @@ namespace stratgame {
 void draw_models(const entt::registry &registry) {
     const auto view = registry.view<ModelComponent, stratgame::Transform>();
     for (auto entity : view) {
-        auto &model_component = view.get<ModelComponent>(entity);
+        const auto &model_component = view.get<ModelComponent>(entity);
         const auto &transform = view.get<stratgame::Transform>(entity);
 
         if (registry.any_of<ShaderComponent>(entity)) {
@@ -18,7 +18,7 @@ void draw_models(const entt::registry &registry) {
             model_component.model.materials[0].shader = shader_backup;
             continue;
         }
-        DrawModel(model_component.model, transform.position, 1.0f, WHITE);
+        DrawModel(model_component.model, transform.position, model_component.scale, WHITE);
     }
 }
 

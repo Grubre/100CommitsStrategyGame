@@ -10,6 +10,7 @@
 namespace stratgame {
 struct Chunk {
     Model model;
+    Vector3 transform;
 };
 
 struct TerrainGenerator {

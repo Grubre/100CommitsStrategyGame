@@ -10,21 +10,21 @@ auto TerrainGenerator::generate_chunk(const std::int64_t x, const std::int64_t y
     auto mesh = generate_flat_chunk_mesh();
 
     Model model = LoadModelFromMesh(mesh);
-    model.transform = MatrixTranslate(transform.x, transform.y, transform.z);
 
-    return Chunk{.model = model};
+    return Chunk{.model = model, .transform = transform};
 }
 
 auto TerrainGenerator::register_chunk(entt::registry &registry, const Chunk &chunk) const -> entt::entity {
     const auto entity = registry.create();
 
     registry.emplace<stratgame::ModelComponent>(entity, chunk.model);
-    registry.emplace<stratgame::Transform>(entity, Vector3Transform(Vector3{0.f, 0.f, 0.f}, chunk.model.transform));
+    registry.emplace<stratgame::Transform>(entity, chunk.transform);
     registry.emplace<stratgame::ShaderComponent>(entity, shader);
     registry.emplace<stratgame::DrawModelWireframeComponent>(entity);
 
     return entity;
 }
+
 auto TerrainGenerator::generate_flat_chunk_mesh() const -> Mesh {
     Mesh mesh{};
 
@@ -34,8 +34,8 @@ auto TerrainGenerator::generate_flat_chunk_mesh() const -> Mesh {
     mesh.indices = static_cast<unsigned short *>(
         MemAlloc(static_cast<unsigned int>(mesh.triangleCount * 3) * sizeof(unsigned short)));
 
-    for (auto i = 0llu; i < chunk_vertex_cnt; i++) {
-        for (auto j = 0llu; j < chunk_vertex_cnt; j++) {
+    for (auto i = 0lu; i < chunk_vertex_cnt; i++) {
+        for (auto j = 0lu; j < chunk_vertex_cnt; j++) {
             const auto index = i * chunk_vertex_cnt + j;
             mesh.vertices[index * 3] = static_cast<float>(j) * dist_between_vertices();
             mesh.vertices[index * 3 + 1] = 0.f;
@@ -43,7 +43,7 @@ auto TerrainGenerator::generate_flat_chunk_mesh() const -> Mesh {
         }
     }
 
-    auto k = 0;
+    auto k = 0u;
 
     for (auto i = 0u; i < chunk_vertex_cnt - 1; i++) {
         for (auto j = 0u; j < chunk_vertex_cnt - 1; j++) {

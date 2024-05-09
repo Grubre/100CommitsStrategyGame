@@ -5,7 +5,10 @@
 
 namespace stratgame {
 struct ModelComponent {
+    explicit ModelComponent(Model model, float scale = 1.0f) : model{model}, scale{scale} {}
+
     Model model;
+    float scale;
 };
 
 struct ShaderComponent {
@@ -17,7 +20,8 @@ struct DrawModelWireframeComponent {};
 
 void draw_models(const entt::registry &registry);
 void draw_model_wireframes(const entt::registry &registry);
-void draw_models_instanced(entt::registry &registry); // not const because updates the model transform members to 'Transform' components values
+void draw_models_instanced(
+    entt::registry &registry); // not const because updates the model transform members to 'Transform' components values
 
 struct InstanceableModel {
     int model_id;
