@@ -1,6 +1,6 @@
 #include "drawing.hpp"
 #include "common_components.hpp"
-#include <iostream>
+#include <print>
 #include <raymath.h>
 
 namespace stratgame {
@@ -25,7 +25,7 @@ void draw_models(const entt::registry &registry) {
 auto register_instanceable_model(entt::registry &registry, const Model &model) -> entt::entity {
     static int model_id = 0;
 
-    std::cout << "Registering model with id: " << model_id << "\n";
+    std::println("Registering model with id: {}", model_id);
 
     const auto entity = registry.create();
     registry.emplace<InstanceableModel>(entity, model_id, model, std::vector<Matrix>{});
@@ -43,8 +43,6 @@ void create_model_instance(entt::registry &registry, entt::entity model_entity, 
 
     transforms.push_back(MatrixIdentity());
     registry.emplace<ModelInstance>(object_entity, instanceable_model.model_id, static_cast<int>(transforms.size()));
-
-    // std::cout << "Created new instance of model " << instanceable_model.model_id << ".\n";
 }
 
 void draw_models_instanced(entt::registry &registry) {

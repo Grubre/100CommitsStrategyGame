@@ -2,7 +2,6 @@
 #include "common_components.hpp"
 #include "drawing.hpp"
 #include <SimplexNoise.h>
-#include <iostream>
 #include <raymath.h>
 
 namespace stratgame {

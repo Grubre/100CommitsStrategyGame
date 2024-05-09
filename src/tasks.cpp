@@ -2,8 +2,8 @@
 #include "common_components.hpp"
 #include "minion.hpp"
 #include "terrain.hpp"
-#include <iostream>
 #include <raymath.h>
+#include <print>
 
 namespace stratgame {
 
@@ -12,7 +12,7 @@ void add_task(entt::registry &registry, const entt::entity entity, const Task& t
         registry.emplace<TaskQueue>(entity);
     }
 
-    std::cout << "Adding task to entity\n";
+    std::println("Adding task to entity");
 
     registry.patch<TaskQueue>(entity, [&](TaskQueue &task_queue) { task_queue.set_new_task(task); });
 }
@@ -43,7 +43,7 @@ void update_tasks(entt::registry &registry) {
             const auto movement_delta = Vector2Scale(direction, movement_delta_scalar);
 
             if (Vector2Length(diff_to_target2d) < movement_delta_scalar) {
-                std::cout << "Reached target!\n";
+                std::println("Reached target!");
                 transform.position = target;
                 task_queue.remove_task();
             } else {

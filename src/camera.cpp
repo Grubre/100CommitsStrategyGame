@@ -1,6 +1,4 @@
 #include "camera.hpp"
-#include <cstdio>
-#include <iostream>
 #include <raylib.h>
 #include <raymath.h>
 

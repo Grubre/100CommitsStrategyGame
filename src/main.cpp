@@ -7,6 +7,7 @@
 #include "systems.hpp"
 #include "tasks.hpp"
 #include <entt.hpp>
+#include <print>
 
 #include "common_components.hpp"
 #include "terrain.hpp"
@@ -26,7 +27,7 @@ auto main() -> int {
     auto terrain_generator = stratgame::TerrainGenerator(noise, 16, 16, terrain_shader);
 
     auto chunk = terrain_generator.generate_chunk(0,0);
-    auto chunk_entity = terrain_generator.register_chunk(registry, chunk);
+    auto _ = terrain_generator.register_chunk(registry, chunk);
 
     registry.emplace<stratgame::TerrainClick>(world_entity);
 
