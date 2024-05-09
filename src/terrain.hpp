@@ -16,7 +16,7 @@ struct Chunk {
 struct TerrainGenerator {
   public:
     TerrainGenerator(SimplexNoise noise, uint32_t chunk_resolution, uint32_t chunk_size, const Shader &shader)
-        : noise(noise), shader(shader), chunk_size(chunk_size), chunk_vertex_cnt(chunk_resolution) {}
+        : noise(noise), shader(shader), chunk_size(chunk_size), chunk_subdivions(chunk_resolution) {}
 
     [[nodiscard]] auto generate_chunk(const std::int64_t x, const std::int64_t y) const -> Chunk;
     auto register_chunk(entt::registry &registry, const Chunk &chunk) const -> entt::entity;
@@ -28,10 +28,10 @@ struct TerrainGenerator {
     Shader shader;
 
     uint32_t chunk_size;       /// size of the chunk in world units
-    uint32_t chunk_vertex_cnt; /// number of vertices per row/col
+    uint32_t chunk_subdivions;
 
     [[nodiscard]] constexpr auto dist_between_vertices() const -> float {
-        return static_cast<float>(chunk_size) / static_cast<float>(chunk_vertex_cnt);
+        return static_cast<float>(chunk_size) / static_cast<float>(chunk_subdivions);
     }
 
     [[nodiscard]] auto generate_flat_chunk_mesh() const -> Mesh;

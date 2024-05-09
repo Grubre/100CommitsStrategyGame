@@ -28,15 +28,17 @@ auto TerrainGenerator::register_chunk(entt::registry &registry, const Chunk &chu
 auto TerrainGenerator::generate_flat_chunk_mesh() const -> Mesh {
     Mesh mesh{};
 
-    mesh.triangleCount = static_cast<int>((chunk_vertex_cnt - 1u) * (chunk_vertex_cnt - 1u) * 2u);
-    mesh.vertexCount = static_cast<int>(chunk_vertex_cnt * chunk_vertex_cnt);
+    const auto num_vertices_per_side = chunk_subdivions + 1u;
+
+    mesh.triangleCount = static_cast<int>((num_vertices_per_side - 1u) * (num_vertices_per_side - 1u) * 2u);
+    mesh.vertexCount = static_cast<int>(num_vertices_per_side * num_vertices_per_side);
     mesh.vertices = static_cast<float *>(MemAlloc(static_cast<unsigned int>(mesh.vertexCount * 3) * sizeof(float)));
     mesh.indices = static_cast<unsigned short *>(
         MemAlloc(static_cast<unsigned int>(mesh.triangleCount * 3) * sizeof(unsigned short)));
 
-    for (auto i = 0lu; i < chunk_vertex_cnt; i++) {
-        for (auto j = 0lu; j < chunk_vertex_cnt; j++) {
-            const auto index = i * chunk_vertex_cnt + j;
+    for (auto i = 0lu; i < num_vertices_per_side; i++) {
+        for (auto j = 0lu; j < num_vertices_per_side; j++) {
+            const auto index = i * num_vertices_per_side + j;
             mesh.vertices[index * 3] = static_cast<float>(j) * dist_between_vertices();
             mesh.vertices[index * 3 + 1] = 0.f;
             mesh.vertices[index * 3 + 2] = static_cast<float>(i) * dist_between_vertices();
@@ -45,14 +47,14 @@ auto TerrainGenerator::generate_flat_chunk_mesh() const -> Mesh {
 
     auto k = 0u;
 
-    for (auto i = 0u; i < chunk_vertex_cnt - 1; i++) {
-        for (auto j = 0u; j < chunk_vertex_cnt - 1; j++) {
-            mesh.indices[k] = static_cast<unsigned short>(i * chunk_vertex_cnt + j);
-            mesh.indices[k + 1] = static_cast<unsigned short>((i + 1) * chunk_vertex_cnt + j);
-            mesh.indices[k + 2] = static_cast<unsigned short>((i + 1) * chunk_vertex_cnt + (j + 1));
-            mesh.indices[k + 3] = static_cast<unsigned short>(i * chunk_vertex_cnt + j);
-            mesh.indices[k + 4] = static_cast<unsigned short>((i + 1) * chunk_vertex_cnt + (j + 1));
-            mesh.indices[k + 5] = static_cast<unsigned short>(i * chunk_vertex_cnt + (j + 1));
+    for (auto i = 0u; i < num_vertices_per_side - 1; i++) {
+        for (auto j = 0u; j < num_vertices_per_side - 1; j++) {
+            mesh.indices[k] = static_cast<unsigned short>(i * num_vertices_per_side + j);
+            mesh.indices[k + 1] = static_cast<unsigned short>((i + 1) * num_vertices_per_side + j);
+            mesh.indices[k + 2] = static_cast<unsigned short>((i + 1) * num_vertices_per_side + (j + 1));
+            mesh.indices[k + 3] = static_cast<unsigned short>(i * num_vertices_per_side + j);
+            mesh.indices[k + 4] = static_cast<unsigned short>((i + 1) * num_vertices_per_side + (j + 1));
+            mesh.indices[k + 5] = static_cast<unsigned short>(i * num_vertices_per_side + (j + 1));
             k += 6; // next quad
         }
     }
