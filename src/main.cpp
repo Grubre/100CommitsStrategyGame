@@ -26,8 +26,8 @@ auto main() -> int {
     auto noise = SimplexNoise();
     auto terrain_generator = stratgame::TerrainGenerator(noise, 16, 16, terrain_shader);
 
-    for(auto x = -10; x < 10; x++) {
-        for(auto y = -10; y < 10; y++) {
+    for (auto x = -10; x < 10; x++) {
+        for (auto y = -10; y < 10; y++) {
             auto chunk = terrain_generator.generate_chunk(x, y);
             auto chunk_entity = terrain_generator.register_chunk(registry, chunk);
         }
@@ -74,6 +74,7 @@ auto main() -> int {
         // ======================================
         // DRAW SYSTEMS
         // ======================================
+        stratgame::flag_culled_models(registry);
         stratgame::draw_models(registry);
         if (toggle_wireframe) {
             stratgame::draw_model_wireframes(registry);

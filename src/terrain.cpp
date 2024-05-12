@@ -20,6 +20,7 @@ auto TerrainGenerator::register_chunk(entt::registry &registry, const Chunk &chu
     registry.emplace<stratgame::ModelComponent>(entity, chunk.model);
     registry.emplace<stratgame::Transform>(entity, chunk.transform);
     registry.emplace<stratgame::ShaderComponent>(entity, shader);
+    registry.emplace<stratgame::FrustumCullingComponent>(entity, chunk_size * std::sqrt(2));
     registry.emplace<stratgame::DrawModelWireframeComponent>(entity);
 
     return entity;

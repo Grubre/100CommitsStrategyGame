@@ -13,7 +13,7 @@ void setup_raylib() {
     const int screen_height = GetMonitorHeight(display);
 
     SetConfigFlags(FLAG_MSAA_4X_HINT);
-    SetConfigFlags(FLAG_VSYNC_HINT);
+    // SetConfigFlags(FLAG_VSYNC_HINT);
 
     InitWindow(screen_width, screen_height, "RTS game");
 }

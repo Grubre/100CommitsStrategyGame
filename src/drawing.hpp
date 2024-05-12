@@ -9,19 +9,24 @@ struct ModelComponent {
 
     Model model;
     float scale;
+    bool visible = true;
 };
 
 struct ShaderComponent {
     Shader shader;
 };
 
+struct FrustumCullingComponent {
+    float radius;
+};
+void flag_culled_models(entt::registry &registry);
+
 // requires ModelComponent
 struct DrawModelWireframeComponent {};
 
 void draw_models(const entt::registry &registry);
 void draw_model_wireframes(const entt::registry &registry);
-void draw_models_instanced(
-    entt::registry &registry); // not const because updates the model transform members to 'Transform' components values
+void draw_models_instanced(entt::registry &registry);
 
 struct InstanceableModel {
     int model_id;
