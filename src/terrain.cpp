@@ -2,6 +2,7 @@
 #include "common_components.hpp"
 #include "drawing.hpp"
 #include <SimplexNoise.h>
+#include <numbers>
 #include <raymath.h>
 
 namespace stratgame {
@@ -20,8 +21,12 @@ auto TerrainGenerator::register_chunk(entt::registry &registry, const Chunk &chu
     registry.emplace<stratgame::ModelComponent>(entity, chunk.model);
     registry.emplace<stratgame::Transform>(entity, chunk.transform);
     registry.emplace<stratgame::ShaderComponent>(entity, shader);
-    registry.emplace<stratgame::FrustumCullingComponent>(entity, chunk_size * std::sqrt(2));
     registry.emplace<stratgame::DrawModelWireframeComponent>(entity);
+
+    const auto radius = static_cast<float>(chunk_size) * std::numbers::sqrt2_v<float> / 2.f;
+    const auto offset = Vector2{radius / 2.f, radius / 2.f};
+    registry.emplace<stratgame::FrustumCullingComponent>(
+        entity, stratgame::FrustumCullingComponent{.radius = radius, .offset = offset});
 
     return entity;
 }

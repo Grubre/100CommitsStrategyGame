@@ -1,6 +1,7 @@
 #include "drawing.hpp"
 #include "camera.hpp"
 #include "common_components.hpp"
+#include <functional>
 #include <print>
 #include <raymath.h>
 
@@ -29,11 +30,13 @@ void draw_models(const entt::registry &registry) {
 }
 
 void flag_culled_models(entt::registry &registry) {
+    constexpr auto half_pi = std::numbers::pi_v<float> / 2.f;
+
     const auto view = registry.view<ModelComponent, stratgame::Transform, FrustumCullingComponent>();
     const auto camera_entity = registry.view<stratgame::Camera>().front();
     const auto &camera = registry.get<stratgame::Camera>(camera_entity);
     const auto camera_pos = camera.get_source_position();
-    const auto fovx = camera.camera3d.fovy * (float)GetScreenWidth() / (float)GetScreenHeight();
+    const auto fovx = 180.f;
     const auto alpha = (180 - fovx) / 2;
     const auto sin_alpha = sin(alpha);
     const auto cos_alpha = cos(alpha);
@@ -51,7 +54,7 @@ void flag_culled_models(entt::registry &registry) {
 
             const auto origin_point_3d = Vector3Subtract(transform.position, camera_pos);
             const auto origin_point = Vector2(origin_point_3d.x, origin_point_3d.z);
-            const auto rotated = Vector2Rotate(origin_point, -camera.yaw);
+            const auto rotated = Vector2Rotate(origin_point, camera.yaw + half_pi);
 
             const auto x = rotated.x + coeffx * frustum_culling_component.radius * sin_alpha;
             const auto y = rotated.y + coeffy * frustum_culling_component.radius * cos_alpha;
@@ -60,10 +63,6 @@ void flag_culled_models(entt::registry &registry) {
         };
 
         model_component.visible = check_in_frustum(true) && check_in_frustum(false);
-
-        // if (!model_component.visible) {
-        //     std::println("Culled model");
-        // }
     }
 }
 

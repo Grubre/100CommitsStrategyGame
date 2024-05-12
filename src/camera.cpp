@@ -26,18 +26,18 @@ void handle_camera_input(entt::registry &registry) {
 
         auto pitch_velocity = 0.f;
         auto yaw_velocity = 0.f;
-        auto velocity = Vector2{0.0, 0.0};
+        auto xz_velocity = Vector2{0.0, 0.0};
         if (IsKeyDown(KEY_W)) {
-            velocity.x -= 1.f;
+            xz_velocity.x -= 1.f;
         }
         if (IsKeyDown(KEY_S)) {
-            velocity.x += 1.f;
+            xz_velocity.x += 1.f;
         }
         if (IsKeyDown(KEY_A)) {
-            velocity.y += 1.f;
+            xz_velocity.y += 1.f;
         }
         if (IsKeyDown(KEY_D)) {
-            velocity.y -= 1.f;
+            xz_velocity.y -= 1.f;
         }
         if (IsKeyDown(KEY_LEFT)) {
             yaw_velocity -= 1.f;
@@ -52,10 +52,10 @@ void handle_camera_input(entt::registry &registry) {
             pitch_velocity += 1.f;
         }
 
-        velocity = Vector2Normalize(velocity);
-        velocity = Vector2Rotate(velocity, -camera.yaw);
-        velocity = Vector2Scale(velocity, camera.speed * delta_time);
-        camera.target_position = Vector2Add(velocity, camera.target_position);
+        xz_velocity = Vector2Normalize(xz_velocity);
+        xz_velocity = Vector2Rotate(xz_velocity, -camera.yaw);
+        xz_velocity = Vector2Scale(xz_velocity, camera.speed * delta_time);
+        camera.target_position = Vector2Add(xz_velocity, camera.target_position);
 
         pitch_velocity = pitch_velocity * delta_time * camera.rotation_speed;
         camera.pitch += pitch_velocity;

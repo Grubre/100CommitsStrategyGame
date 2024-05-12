@@ -18,6 +18,7 @@ struct ShaderComponent {
 
 struct FrustumCullingComponent {
     float radius;
+    Vector2 offset; // offset from the Transform component used in the frustum culling check
 };
 void flag_culled_models(entt::registry &registry);
 
