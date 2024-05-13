@@ -1,12 +1,11 @@
 #pragma once
+#include <raylib.h>
 #include <algorithm>
 #include <cmath>
 #include <numbers>
-#include <raylib.h>
-#include <raymath.h>
 #include "common.hpp"
 #include "common_components.hpp"
-
+#include <raymath.h>
 
 namespace stratgame {
 
@@ -32,10 +31,17 @@ struct Camera {
 
     // ZOOM_DIRECTION zoom_dir = ZOOM_DIRECTION::NONE;
 
-    [[nodiscard]] auto get_target_position() const -> Vector3 {
-        return to_vec3(target_position);
+    [[nodiscard]] auto get_camera_dir() const -> Vector3 {
+        return Vector3Normalize(Vector3Subtract(get_target_position(), get_source_position()));
+    }
+    [[nodiscard]] auto get_right_vec() const -> Vector3 {
+        return Vector3Normalize(Vector3CrossProduct(camera3d.up, get_camera_dir()));
+    }
+    [[nodiscard]] auto get_up_vec() const -> Vector3 {
+        return Vector3Normalize(Vector3CrossProduct(get_camera_dir(), get_right_vec()));
     }
 
+    [[nodiscard]] auto get_target_position() const -> Vector3 { return to_vec3(target_position); }
     [[nodiscard]] auto get_source_position() const -> Vector3 {
         auto const pitched = Vector3{cos(pitch), sin(pitch), 0.0f};
         auto const yawed = Vector3RotateByAxisAngle(pitched, Vector3{0.0, 1.0, 0.0}, yaw);
@@ -46,6 +52,9 @@ struct Camera {
         return source_vec;
     }
     [[nodiscard]] auto is_within_zoom_bounds() const -> bool { return zoom <= max_zoom && zoom >= min_zoom; }
+    [[nodiscard]] auto get_fovx() const -> float {
+        return camera3d.fovy * (static_cast<float>(GetScreenWidth()) / static_cast<float>(GetScreenHeight()));
+    }
 
     void keep_rotation_bounds() {
         pitch = std::clamp(pitch, min_pitch, max_pitch);

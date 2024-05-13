@@ -7,7 +7,7 @@ namespace stratgame {
 constexpr static auto default_raylib_camera = Camera3D{.position = Vector3{0.0f, 0.0f, 0.f},
                                                        .target = Vector3{0.0f, 0.0f, 0.0f},
                                                        .up = Vector3{0.0f, 1.0f, 0.0f},
-                                                       .fovy = 90.0f,
+                                                       .fovy = 45.0f,
                                                        .projection = CAMERA_PERSPECTIVE};
 
 auto create_camera(entt::registry &registry) -> entt::entity {

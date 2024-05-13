@@ -2,8 +2,10 @@
 #include "camera.hpp"
 #include "drawing.hpp"
 #include "homeless_functions.hpp"
+#include "imgui.h"
 #include "minion.hpp"
 #include "raylib.h"
+#include "rlImGui.h"
 #include "systems.hpp"
 #include "tasks.hpp"
 #include <entt.hpp>
@@ -26,8 +28,8 @@ auto main() -> int {
     auto noise = SimplexNoise();
     auto terrain_generator = stratgame::TerrainGenerator(noise, 16, 16, terrain_shader);
 
-    for (auto x = -10; x < 10; x++) {
-        for (auto y = -10; y < 10; y++) {
+    for (auto x = 0; x < 1; x++) {
+        for (auto y = 0; y < 1; y++) {
             auto chunk = terrain_generator.generate_chunk(x, y);
             auto chunk_entity = terrain_generator.register_chunk(registry, chunk);
         }
@@ -51,6 +53,8 @@ auto main() -> int {
 
     bool toggle_wireframe = false;
     GuiLoadStyleDefault();
+
+    rlImGuiSetup(true);
 
     while (!WindowShouldClose()) {
         auto &camera = registry.get<stratgame::Camera>(camera_entity);
@@ -97,7 +101,7 @@ auto main() -> int {
 
         EndDrawing();
     }
-
+    rlImGuiShutdown();
     CloseWindow();
 
     return 0;

@@ -1,7 +1,6 @@
 #pragma once
 #include <raymath.h>
 
-// modern c++ raylib vector2 to 3 and back conversion
 namespace stratgame {
 [[nodiscard]] inline auto to_vec3(const Vector2 &v, const float y = 0.f) -> Vector3 {
     return Vector3{v.x, y, v.y};

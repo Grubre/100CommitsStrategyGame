@@ -1,8 +1,7 @@
+#include <print>
 #include "drawing.hpp"
 #include "camera.hpp"
 #include "common_components.hpp"
-#include <functional>
-#include <print>
 #include <raymath.h>
 
 namespace stratgame {
@@ -30,44 +29,57 @@ void draw_models(const entt::registry &registry) {
 }
 
 void flag_culled_models(entt::registry &registry) {
-    constexpr auto half_pi = std::numbers::pi_v<float> / 2.f;
-
     const auto models_view = registry.view<ModelComponent, stratgame::Transform, FrustumCullingComponent>();
+
     const auto camera_entity = registry.view<stratgame::Camera>().front();
     const auto &camera = registry.get<stratgame::Camera>(camera_entity);
     const auto camera_pos = camera.get_source_position();
-    const auto fovx = 180.f;
-    const auto alpha = (180 - fovx) / 2;
-    const auto sin_alpha = sin(alpha);
-    const auto cos_alpha = cos(alpha);
-    const auto tan_alpha = tan(alpha);
+    const auto camera_dir = camera.get_camera_dir();
+
+    const auto right_vec = camera.get_right_vec();
+    const auto up_vec = camera.get_up_vec();
+
+    const auto half_fovy = camera.camera3d.fovy / 2.f;
+    const auto half_fovx = camera.get_fovx() / 2.f;
+
+    const auto tan_half_fovy = std::tan(half_fovy);
+    const auto tan_half_fovx = std::tan(half_fovx);
+    const auto factor_x = 1.f / std::cos(half_fovx);
+    const auto factor_y = 1.f / std::cos(half_fovy);
+
+    std::println("fovx: {}", half_fovx);
+
+    int num_culled = 0;
 
     for (auto model_entity : models_view) {
-        auto &model_component = models_view.get<ModelComponent>(model_entity);
-        const auto &transform = models_view.get<stratgame::Transform>(model_entity);
-        const auto &frustum_culling_component = models_view.get<FrustumCullingComponent>(model_entity);
+        const auto &[model_component, transform, culling_component] = models_view.get(model_entity);
 
-        const auto culled_center = frustum_culling_component.get_sphere_center(transform.position);
-        DrawSphere(culled_center, 1.f, RED);
+        model_component.visible = true;
 
-        const auto check_in_frustum = [&](bool to_right) {
-            const auto coeffx = to_right ? -1.f : 1.f;
-            const auto coeffy = 1.f;
-            const auto coefff = to_right ? 1.f : -1.f;
+        const auto culling_sphere_center = culling_component.get_sphere_center(transform.position);
+        const auto camera_to_sphere_vec = Vector3Subtract(culling_sphere_center, camera_pos);
+        const auto sz = Vector3DotProduct(camera_dir, camera_to_sphere_vec);
 
-            const auto frustum_sphere_center = frustum_culling_component.get_sphere_center(transform.position);
-            const auto normalized_model_transform_3d = Vector3Subtract(frustum_sphere_center, camera_pos);
-            const auto normalized_model_transform_2d = Vector2(normalized_model_transform_3d.x, normalized_model_transform_3d.z);
-            const auto rotated_model_transform = Vector2Rotate(normalized_model_transform_2d, camera.yaw + half_pi);
+        const auto sy = Vector3DotProduct(up_vec, camera_to_sphere_vec);
+        const auto y_dist = culling_component.radius * factor_y + sz * tan_half_fovy;
+        if (sy > y_dist || sy < -y_dist) {
+            model_component.visible = false;
+            num_culled++;
+            std::println("Culled by y: {}", sy);
+            continue;
+        }
 
-            const auto sphere_x = rotated_model_transform.x + coeffx * frustum_culling_component.radius * sin_alpha;
-            const auto sphere_z = rotated_model_transform.y + coeffy * frustum_culling_component.radius * cos_alpha;
-
-            return sphere_z <= coefff * tan_alpha * sphere_x;
-        };
-
-        model_component.visible = check_in_frustum(true) && check_in_frustum(false);
+        const auto sx = Vector3DotProduct(right_vec, camera_to_sphere_vec);
+        const auto x_dist = culling_component.radius * factor_x + sz * tan_half_fovx;
+        std::println("sx: {}", sx);
+        if (sx > x_dist || sx < -x_dist) {
+            model_component.visible = false;
+            num_culled++;
+            std::println("Culled by x: {}", sx);
+        }
     }
+
+    std::println("Num culled: {}", num_culled);
 }
 
 auto register_instanceable_model(entt::registry &registry, const Model &model) -> entt::entity {
