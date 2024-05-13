@@ -1,4 +1,5 @@
 #pragma once
+#include <raylib.h>
 #include <raymath.h>
 
 namespace stratgame {
@@ -8,5 +9,9 @@ namespace stratgame {
 
 [[nodiscard]] inline auto to_vec2(const Vector3 &v) -> Vector2 {
     return Vector2{v.x, v.z};
+}
+
+[[nodiscard]] inline auto get_aspect_ratio() -> float {
+    return static_cast<float>(GetScreenWidth()) / static_cast<float>(GetScreenHeight());
 }
 } // namespace stratgame

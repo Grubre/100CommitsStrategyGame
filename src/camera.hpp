@@ -53,7 +53,7 @@ struct Camera {
     }
     [[nodiscard]] auto is_within_zoom_bounds() const -> bool { return zoom <= max_zoom && zoom >= min_zoom; }
     [[nodiscard]] auto get_fovx() const -> float {
-        return camera3d.fovy * (static_cast<float>(GetScreenWidth()) / static_cast<float>(GetScreenHeight()));
+        return 2 * std::atan(std::tan(camera3d.fovy / 2.f) * get_aspect_ratio());
     }
 
     void keep_rotation_bounds() {
