@@ -32,7 +32,7 @@ void draw_models(const entt::registry &registry) {
 void flag_culled_models(entt::registry &registry) {
     constexpr auto half_pi = std::numbers::pi_v<float> / 2.f;
 
-    const auto view = registry.view<ModelComponent, stratgame::Transform, FrustumCullingComponent>();
+    const auto models_view = registry.view<ModelComponent, stratgame::Transform, FrustumCullingComponent>();
     const auto camera_entity = registry.view<stratgame::Camera>().front();
     const auto &camera = registry.get<stratgame::Camera>(camera_entity);
     const auto camera_pos = camera.get_source_position();
@@ -42,24 +42,28 @@ void flag_culled_models(entt::registry &registry) {
     const auto cos_alpha = cos(alpha);
     const auto tan_alpha = tan(alpha);
 
-    for (auto entity : view) {
-        auto &model_component = view.get<ModelComponent>(entity);
-        const auto &transform = view.get<stratgame::Transform>(entity);
-        const auto &frustum_culling_component = view.get<FrustumCullingComponent>(entity);
+    for (auto model_entity : models_view) {
+        auto &model_component = models_view.get<ModelComponent>(model_entity);
+        const auto &transform = models_view.get<stratgame::Transform>(model_entity);
+        const auto &frustum_culling_component = models_view.get<FrustumCullingComponent>(model_entity);
+
+        const auto culled_center = frustum_culling_component.get_sphere_center(transform.position);
+        DrawSphere(culled_center, 1.f, RED);
 
         const auto check_in_frustum = [&](bool to_right) {
             const auto coeffx = to_right ? -1.f : 1.f;
             const auto coeffy = 1.f;
             const auto coefff = to_right ? 1.f : -1.f;
 
-            const auto origin_point_3d = Vector3Subtract(transform.position, camera_pos);
-            const auto origin_point = Vector2(origin_point_3d.x, origin_point_3d.z);
-            const auto rotated = Vector2Rotate(origin_point, camera.yaw + half_pi);
+            const auto frustum_sphere_center = frustum_culling_component.get_sphere_center(transform.position);
+            const auto normalized_model_transform_3d = Vector3Subtract(frustum_sphere_center, camera_pos);
+            const auto normalized_model_transform_2d = Vector2(normalized_model_transform_3d.x, normalized_model_transform_3d.z);
+            const auto rotated_model_transform = Vector2Rotate(normalized_model_transform_2d, camera.yaw + half_pi);
 
-            const auto x = rotated.x + coeffx * frustum_culling_component.radius * sin_alpha;
-            const auto y = rotated.y + coeffy * frustum_culling_component.radius * cos_alpha;
+            const auto sphere_x = rotated_model_transform.x + coeffx * frustum_culling_component.radius * sin_alpha;
+            const auto sphere_z = rotated_model_transform.y + coeffy * frustum_culling_component.radius * cos_alpha;
 
-            return y <= coefff * tan_alpha * x;
+            return sphere_z <= coefff * tan_alpha * sphere_x;
         };
 
         model_component.visible = check_in_frustum(true) && check_in_frustum(false);

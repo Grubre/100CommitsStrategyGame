@@ -1,4 +1,5 @@
 #include "tasks.hpp"
+#include "common.hpp"
 #include "common_components.hpp"
 #include "minion.hpp"
 #include "terrain.hpp"
@@ -34,10 +35,10 @@ void update_tasks(entt::registry &registry) {
 
         if (std::holds_alternative<WalkToTask>(task)) {
             const auto &walk_to_task = std::get<WalkToTask>(task);
-            const auto target = Vector3{walk_to_task.target.x, 0, walk_to_task.target.y};
+            const auto target = to_vec3(walk_to_task.target);
 
             const auto diff_to_target = Vector3Subtract(target, transform.position);
-            const auto diff_to_target2d = Vector2{diff_to_target.x, diff_to_target.z};
+            const auto diff_to_target2d = to_vec2(diff_to_target);
             const auto direction = Vector2Normalize(diff_to_target2d);
             const auto movement_delta_scalar = walk_to_task.speed * delta;
             const auto movement_delta = Vector2Scale(direction, movement_delta_scalar);

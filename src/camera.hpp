@@ -1,10 +1,12 @@
 #pragma once
-#include "common_components.hpp"
 #include <algorithm>
 #include <cmath>
 #include <numbers>
 #include <raylib.h>
 #include <raymath.h>
+#include "common.hpp"
+#include "common_components.hpp"
+
 
 namespace stratgame {
 
@@ -31,8 +33,9 @@ struct Camera {
     // ZOOM_DIRECTION zoom_dir = ZOOM_DIRECTION::NONE;
 
     [[nodiscard]] auto get_target_position() const -> Vector3 {
-        return Vector3{.x = target_position.x, .y = 0.0f, .z = target_position.y};
+        return to_vec3(target_position);
     }
+
     [[nodiscard]] auto get_source_position() const -> Vector3 {
         auto const pitched = Vector3{cos(pitch), sin(pitch), 0.0f};
         auto const yawed = Vector3RotateByAxisAngle(pitched, Vector3{0.0, 1.0, 0.0}, yaw);

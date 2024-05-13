@@ -2,6 +2,8 @@
 
 #include <entt.hpp>
 #include <raylib.h>
+#include <raymath.h>
+#include "common.hpp"
 
 namespace stratgame {
 struct ModelComponent {
@@ -19,6 +21,16 @@ struct ShaderComponent {
 struct FrustumCullingComponent {
     float radius;
     Vector2 offset; // offset from the Transform component used in the frustum culling check
+
+    [[nodiscard]] auto get_sphere_center(const Vector3 &position) const -> Vector3 {
+        const auto culled_center_1 = Vector2(position.x, position.z);
+        return to_vec3(Vector2Add(culled_center_1, offset), position.y);
+    }
+
+    [[nodiscard]] auto get_sphere_center(const Vector2 &position) const -> Vector2 {
+        const auto culled_center_1 = position;
+        return Vector2Add(culled_center_1, offset);
+    }
 };
 void flag_culled_models(entt::registry &registry);
 

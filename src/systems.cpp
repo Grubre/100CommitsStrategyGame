@@ -7,29 +7,30 @@
 #include "terrain.hpp"
 #include <raylib.h>
 #include <raymath.h>
+#include "common.hpp"
 
 namespace stratgame {
 void update_transform(entt::registry &registry) {
-    auto view = registry.view<const stratgame::Movement, stratgame::Transform>();
+    auto view = registry.view<const Movement, Transform>();
     for (auto entity : view) {
-        const auto &movement = view.get<stratgame::Movement>(entity);
-        auto &transform = view.get<stratgame::Transform>(entity);
+        const auto &movement = view.get<Movement>(entity);
+        auto &transform = view.get<Transform>(entity);
 
         transform.position = Vector3Add(transform.position, movement.velocity);
     }
 }
 
 void handle_input(entt::registry &registry) {
-    // stratgame::handle_mouse_input(registry);
-    stratgame::handle_camera_input(registry);
-    stratgame::tasks_from_input(registry);
+    // handle_mouse_input(registry);
+    handle_camera_input(registry);
+    tasks_from_input(registry);
 }
 
 void handle_mouse_input(entt::registry &registry) {
-    const auto terrain_entity = registry.view<stratgame::TerrainClick>().begin()[0];
-    const auto &terrain = registry.get<stratgame::ModelComponent>(terrain_entity);
-    const auto camera_entity = registry.view<stratgame::Camera>().begin()[0];
-    const auto &camera = registry.get<stratgame::Camera>(camera_entity);
+    const auto terrain_entity = registry.view<TerrainClick>().begin()[0];
+    const auto &terrain = registry.get<ModelComponent>(terrain_entity);
+    const auto camera_entity = registry.view<Camera>().begin()[0];
+    const auto &camera = registry.get<Camera>(camera_entity);
 
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || IsMouseButtonPressed(MOUSE_RIGHT_BUTTON)) {
         const auto mouse_pos = GetMousePosition();
@@ -37,13 +38,13 @@ void handle_mouse_input(entt::registry &registry) {
         // check hit between terrain and ray
         const auto hit = GetRayCollisionMesh(ray, terrain.model.meshes[0], terrain.model.transform);
 
-        registry.patch<stratgame::TerrainClick>(terrain_entity, [&](stratgame::TerrainClick &click) {
-            click.position = hit.hit ? std::optional{Vector2{hit.point.x, hit.point.z}} : std::nullopt;
+        registry.patch<TerrainClick>(terrain_entity, [&](TerrainClick &click) {
+            click.position = hit.hit ? std::optional{to_vec2(hit.point)} : std::nullopt;
         });
 
-        auto minions = registry.view<stratgame::Minion, stratgame::ModelComponent, stratgame::Transform>();
+        auto minions = registry.view<Minion, ModelComponent, Transform>();
         for (auto minion : minions) {
-            const auto &transform = registry.get<stratgame::Transform>(minion);
+            const auto &transform = registry.get<Transform>(minion);
 
             const auto minion_hit = GetRayCollisionSphere(ray, transform.position, 1.f);
 
@@ -56,7 +57,7 @@ void handle_mouse_input(entt::registry &registry) {
                 }   
                 registry.emplace_or_replace<Selected>(minion);
                 break;
-                // registry.patch<stratgame::Selectable>(minion, [&](stratgame::Selectable &selectable) {
+                // registry.patch<Selectable>(minion, [&](Selectable &selectable) {
                 //     selectable.selected = !selectable.selected;
 
                 //     registry.patch<SelectedState>(registry.view<SelectedState>().begin()[0],

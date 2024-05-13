@@ -24,7 +24,7 @@ auto TerrainGenerator::register_chunk(entt::registry &registry, const Chunk &chu
     registry.emplace<stratgame::DrawModelWireframeComponent>(entity);
 
     const auto radius = static_cast<float>(chunk_size) * std::numbers::sqrt2_v<float> / 2.f;
-    const auto offset = Vector2{radius / 2.f, radius / 2.f};
+    const auto offset = Vector2{static_cast<float>(chunk_size) / 2.f, static_cast<float>(chunk_size) / 2.f};
     registry.emplace<stratgame::FrustumCullingComponent>(
         entity, stratgame::FrustumCullingComponent{.radius = radius, .offset = offset});
 
