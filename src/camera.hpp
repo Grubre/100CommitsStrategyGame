@@ -14,6 +14,8 @@ enum class ZOOM_DIRECTION { IN, OUT, NONE };
 struct Camera {
     Camera3D camera3d;
 
+    using degrees = float;
+
     explicit Camera(Camera3D c) : camera3d(c) {}
 
     float max_zoom = 100.f; // max distance from target
@@ -52,8 +54,8 @@ struct Camera {
         return source_vec;
     }
     [[nodiscard]] auto is_within_zoom_bounds() const -> bool { return zoom <= max_zoom && zoom >= min_zoom; }
-    [[nodiscard]] auto get_fovx() const -> float {
-        return 2 * std::atan(std::tan(camera3d.fovy / 2.f) * get_aspect_ratio());
+    [[nodiscard]] auto get_fovx() const -> degrees {
+        return 2 * std::atan(std::tan(DEG2RAD * camera3d.fovy / 2.f) * get_aspect_ratio());
     }
 
     void keep_rotation_bounds() {
