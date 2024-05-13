@@ -1,0 +1,7 @@
+[submodule "external/imgui"]
+	path = external/imgui
+	url = https://github.com/ocornut/imgui.git
+	branch = docking
+[submodule "external/rlimgui"]
+	path = external/rlimgui
+	url = https://github.com/raylib-extras/rlImGui.git
