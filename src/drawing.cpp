@@ -125,6 +125,11 @@ void draw_model_wireframes(const entt::registry &registry) {
     for (auto entity : view) {
         const auto &model_component = view.get<ModelComponent>(entity);
         const auto &transform = view.get<stratgame::Transform>(entity);
+
+        if(!model_component.visible) {
+            continue;
+        }
+
         DrawModelWires(model_component.model, transform.position, 1.0f, Fade(LIGHTGRAY, 0.6f));
     }
 }
