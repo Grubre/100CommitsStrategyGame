@@ -28,8 +28,8 @@ auto main() -> int {
     auto noise = SimplexNoise();
     auto terrain_generator = stratgame::TerrainGenerator(noise, 16, 16, terrain_shader);
 
-    for (auto x = 0; x < 1; x++) {
-        for (auto y = 0; y < 1; y++) {
+    for (auto x = -50; x < 50; x++) {
+        for (auto y = -50; y < 50; y++) {
             auto chunk = terrain_generator.generate_chunk(x, y);
             auto chunk_entity = terrain_generator.register_chunk(registry, chunk);
         }

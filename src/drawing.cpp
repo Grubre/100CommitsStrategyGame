@@ -39,17 +39,13 @@ void flag_culled_models(entt::registry &registry) {
     const auto right_vec = camera.get_right_vec();
     const auto up_vec = camera.get_up_vec();
 
-    const auto half_fovy = camera.camera3d.fovy / 2.f;
+    const auto half_fovy = camera.get_fovy() / 2.f;
     const auto half_fovx = camera.get_fovx() / 2.f;
 
     const auto tan_half_fovy = std::tan(half_fovy);
     const auto tan_half_fovx = std::tan(half_fovx);
     const auto factor_x = 1.f / std::cos(half_fovx);
     const auto factor_y = 1.f / std::cos(half_fovy);
-
-    std::println("fovx: {}", half_fovx);
-
-    int num_culled = 0;
 
     for (auto model_entity : models_view) {
         const auto &[model_component, transform, culling_component] = models_view.get(model_entity);
@@ -64,22 +60,15 @@ void flag_culled_models(entt::registry &registry) {
         const auto y_dist = culling_component.radius * factor_y + sz * tan_half_fovy;
         if (sy > y_dist || sy < -y_dist) {
             model_component.visible = false;
-            num_culled++;
-            std::println("Culled by y: {}", sy);
             continue;
         }
 
         const auto sx = Vector3DotProduct(right_vec, camera_to_sphere_vec);
         const auto x_dist = culling_component.radius * factor_x + sz * tan_half_fovx;
-        std::println("sx: {}", sx);
         if (sx > x_dist || sx < -x_dist) {
             model_component.visible = false;
-            num_culled++;
-            std::println("Culled by x: {}", sx);
         }
     }
-
-    std::println("Num culled: {}", num_culled);
 }
 
 auto register_instanceable_model(entt::registry &registry, const Model &model) -> entt::entity {

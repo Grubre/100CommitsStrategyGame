@@ -57,6 +57,9 @@ struct Camera {
     [[nodiscard]] auto get_fovx() const -> degrees {
         return 2 * std::atan(std::tan(DEG2RAD * camera3d.fovy / 2.f) * get_aspect_ratio());
     }
+    [[nodiscard]] auto get_fovy() const -> degrees {
+        return camera3d.fovy * DEG2RAD;
+    }
 
     void keep_rotation_bounds() {
         pitch = std::clamp(pitch, min_pitch, max_pitch);
