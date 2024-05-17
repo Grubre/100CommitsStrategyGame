@@ -26,14 +26,15 @@ auto main() -> int {
     auto terrain_shader = stratgame::generate_terrain_shader(
         stratgame::load_asset(LoadShader, "shaders/terrain.vs", "shaders/terrain.fs"), 5.0f);
     auto noise = SimplexNoise();
-    auto terrain_generator = stratgame::TerrainGenerator(noise, 16, 16, terrain_shader);
-
-    for (auto x = -50; x < 50; x++) {
-        for (auto y = -50; y < 50; y++) {
-            auto chunk = terrain_generator.generate_chunk(x, y);
-            auto chunk_entity = terrain_generator.register_chunk(registry, chunk);
-        }
-    }
+    const auto terrain_generator = stratgame::generate_terrain(registry, 32 * 16, 1, noise, terrain_shader);
+    // auto terrain_generator = stratgame::TerrainGenerator(noise, 16, 16, terrain_shader);
+    //
+    // for (auto x = -50; x < 50; x++) {
+    //     for (auto y = -50; y < 50; y++) {
+    //         auto chunk = terrain_generator.generate_chunk(x, y);
+    //         auto chunk_entity = terrain_generator.register_chunk(registry, chunk);
+    //     }
+    // }
     // auto chunk = terrain_generator.generate_chunk(0,0);
     // auto chunk_entity = terrain_generator.register_chunk(registry, chunk);
 

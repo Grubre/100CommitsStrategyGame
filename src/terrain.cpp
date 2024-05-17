@@ -3,6 +3,7 @@
 #include "drawing.hpp"
 #include <SimplexNoise.h>
 #include <numbers>
+#include <print>
 #include <raymath.h>
 
 namespace stratgame {
@@ -27,6 +28,8 @@ auto TerrainGenerator::register_chunk(entt::registry &registry, const Chunk &chu
     const auto offset = Vector2{static_cast<float>(chunk_size) / 2.f, static_cast<float>(chunk_size) / 2.f};
     registry.emplace<stratgame::FrustumCullingComponent>(
         entity, stratgame::FrustumCullingComponent{.radius = radius, .offset = offset});
+
+    std::println("Registered chunk at ({}, {})", chunk.transform.x, chunk.transform.z);
 
     return entity;
 }
@@ -80,6 +83,20 @@ auto generate_terrain_shader(const Shader &terrain_shader, const float height_sc
     SetShaderValue(terrain_shader, white_threshold_loc, &white_threshold, SHADER_UNIFORM_FLOAT);
 
     return terrain_shader;
+}
+
+[[nodiscard]] auto generate_terrain(entt::registry& registry, const uint32_t size, const int32_t half_subdivisions, SimplexNoise noise, Shader terrain_shader) -> TerrainGenerator {
+    const auto chunk_size = size / static_cast<uint32_t>(half_subdivisions * 2);
+    auto terrain_generator = TerrainGenerator(noise, static_cast<uint32_t>(half_subdivisions) * 2u, chunk_size, terrain_shader);
+
+    for(auto x = -half_subdivisions; x < half_subdivisions; x++) {
+        for(auto y = -half_subdivisions; y < half_subdivisions; y++) {
+            auto chunk = terrain_generator.generate_chunk(x, y);
+            auto chunk_entity = terrain_generator.register_chunk(registry, chunk);
+        }
+    }
+
+    return terrain_generator;
 }
 
 }; // namespace stratgame
