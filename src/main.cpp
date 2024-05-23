@@ -48,9 +48,9 @@ auto main() -> int {
     stratgame::register_team(registry, RED);
     stratgame::register_team(registry, BLUE);
 
-    // for (auto i = 0; i < 10; i++) {
-    //     stratgame::create_minion(registry, {static_cast<float>(i * 2), static_cast<float>(i * 2)}, rand() % 2);
-    // }
+    for (auto i = 0; i < 10; i++) {
+        stratgame::create_minion(registry, {static_cast<float>(i * 2), static_cast<float>(i * 2)}, rand() % 2);
+    }
 
     bool toggle_wireframe = false;
     GuiLoadStyleDefault();
@@ -62,6 +62,7 @@ auto main() -> int {
         // ======================================
         // UPDATE SYSTEMS
         // ======================================
+        stratgame::flag_culled_models(registry);
         stratgame::handle_input(registry);
         stratgame::update_transform(registry);
         stratgame::update_camera(registry);
@@ -79,7 +80,6 @@ auto main() -> int {
         // ======================================
         // DRAW SYSTEMS
         // ======================================
-        stratgame::flag_culled_models(registry);
         stratgame::draw_models(registry);
         if (toggle_wireframe) {
             stratgame::draw_model_wireframes(registry);
