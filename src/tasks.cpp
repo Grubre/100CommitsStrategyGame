@@ -18,8 +18,28 @@ void add_task(entt::registry &registry, const entt::entity entity, const Task& t
     registry.patch<TaskQueue>(entity, [&](TaskQueue &task_queue) { task_queue.set_new_task(task); });
 }
 
+auto handle_walk_to_task(Transform &transform, const WalkToTask &task, float delta) -> TaskStatus {
+    const auto target = to_vec3(task.target);
+
+    const auto diff_to_target = Vector3Subtract(target, transform.position);
+    const auto diff_to_target2d = to_vec2(diff_to_target);
+    const auto direction = Vector2Normalize(diff_to_target2d);
+    const auto movement_delta_scalar = task.speed * delta;
+    const auto movement_delta = Vector2Scale(direction, movement_delta_scalar);
+
+    if (Vector2Length(diff_to_target2d) < movement_delta_scalar) {
+        std::println("Reached target!");
+        transform.position = target;
+        return TaskStatus::Finished;
+    } else {
+        transform.position = Vector3Add(transform.position, {movement_delta.x, 0, movement_delta.y});
+    }
+
+    return TaskStatus::InProgress;
+}
+
 void update_tasks(entt::registry &registry) {
-    auto minions = registry.view<stratgame::Minion, stratgame::Transform, stratgame::TaskQueue>();
+    const auto minions = registry.view<stratgame::Minion, stratgame::Transform, stratgame::TaskQueue>();
 
     const auto delta = GetFrameTime();
 
@@ -33,24 +53,16 @@ void update_tasks(entt::registry &registry) {
 
         const auto &task = task_queue.current_task();
 
-        if (std::holds_alternative<WalkToTask>(task)) {
-            const auto &walk_to_task = std::get<WalkToTask>(task);
-            const auto target = to_vec3(walk_to_task.target);
+        TaskStatus status = TaskStatus::InProgress;
+        std::visit(
+            overloaded{
+				[&](const WalkToTask &task) { status = handle_walk_to_task(transform, task, delta); },
+			},
+			task);
 
-            const auto diff_to_target = Vector3Subtract(target, transform.position);
-            const auto diff_to_target2d = to_vec2(diff_to_target);
-            const auto direction = Vector2Normalize(diff_to_target2d);
-            const auto movement_delta_scalar = walk_to_task.speed * delta;
-            const auto movement_delta = Vector2Scale(direction, movement_delta_scalar);
-
-            if (Vector2Length(diff_to_target2d) < movement_delta_scalar) {
-                std::println("Reached target!");
-                transform.position = target;
-                task_queue.remove_task();
-            } else {
-                transform.position = Vector3Add(transform.position, {movement_delta.x, 0, movement_delta.y});
-            }
-        }
+        if (status == TaskStatus::Finished) {
+			task_queue.remove_task();
+		}
     }
 }
 

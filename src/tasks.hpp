@@ -13,6 +13,13 @@ struct WalkToTask {
 
 using Task = std::variant<WalkToTask>;
 
+enum class TaskStatus {
+    InProgress,
+    Finished
+};
+
+[[nodiscard]] auto handle_walk_to_task(Transform &transform, const WalkToTask &task, float delta) -> TaskStatus;
+
 struct TaskQueue {
     void append_task(Task task) { m_tasks.push_front(task); }
     void remove_task() { m_tasks.pop_front(); }

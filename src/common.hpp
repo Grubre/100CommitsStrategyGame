@@ -2,6 +2,10 @@
 #include <raylib.h>
 #include <raymath.h>
 
+template <class... Ts> struct overloaded : Ts... {
+    using Ts::operator()...;
+};
+
 namespace stratgame {
 [[nodiscard]] inline auto to_vec3(const Vector2 &v, const float y = 0.f) -> Vector3 {
     return Vector3{v.x, y, v.y};
