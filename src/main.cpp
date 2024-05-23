@@ -26,7 +26,7 @@ auto main() -> int {
     auto terrain_shader = stratgame::generate_terrain_shader(
         stratgame::load_asset(LoadShader, "shaders/terrain.vs", "shaders/terrain.fs"), 5.0f);
     auto noise = SimplexNoise();
-    const auto terrain_generator = stratgame::generate_terrain(registry, 32 * 16, 1, noise, terrain_shader);
+    const auto terrain_generator = stratgame::generate_terrain(registry, 32 * 16, 2, noise, terrain_shader);
     // auto terrain_generator = stratgame::TerrainGenerator(noise, 16, 16, terrain_shader);
     //
     // for (auto x = -50; x < 50; x++) {

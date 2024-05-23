@@ -85,12 +85,13 @@ auto generate_terrain_shader(const Shader &terrain_shader, const float height_sc
     return terrain_shader;
 }
 
-[[nodiscard]] auto generate_terrain(entt::registry& registry, const uint32_t size, const int32_t half_subdivisions, SimplexNoise noise, Shader terrain_shader) -> TerrainGenerator {
-    const auto chunk_size = size / static_cast<uint32_t>(half_subdivisions * 2);
-    auto terrain_generator = TerrainGenerator(noise, static_cast<uint32_t>(half_subdivisions) * 2u, chunk_size, terrain_shader);
+[[nodiscard]] auto generate_terrain(entt::registry& registry, const uint32_t size, const int32_t chunk_half_subdivisions, SimplexNoise noise, Shader terrain_shader) -> TerrainGenerator {
+    const auto subdivisions = static_cast<uint32_t>(chunk_half_subdivisions * 2);
+    const auto chunk_size = size / subdivisions;
+    const auto terrain_generator = TerrainGenerator(noise, subdivisions, chunk_size, terrain_shader);
 
-    for(auto x = -half_subdivisions; x < half_subdivisions; x++) {
-        for(auto y = -half_subdivisions; y < half_subdivisions; y++) {
+    for(auto x = -chunk_half_subdivisions; x < chunk_half_subdivisions; x++) {
+        for(auto y = -chunk_half_subdivisions; y < chunk_half_subdivisions; y++) {
             auto chunk = terrain_generator.generate_chunk(x, y);
             auto chunk_entity = terrain_generator.register_chunk(registry, chunk);
         }
