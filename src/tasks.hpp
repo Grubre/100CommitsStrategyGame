@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common_components.hpp"
 #include <deque>
 #include <entt.hpp>
 #include <raylib.h>
@@ -15,7 +16,8 @@ struct WalkToTask {
 
 using Task = std::variant<WalkToTask>;
 
-[[nodiscard]] auto handle_walk_to_task(Transform &transform, const WalkToTask &task, float delta) -> TaskStatus;
+[[nodiscard]] auto handle_walk_to_task(entt::registry &registry, entt::entity entity, const WalkToTask &task)
+    -> TaskStatus;
 
 struct TaskQueue {
     void append_task(Task task) { m_tasks.push_front(task); }
@@ -37,7 +39,7 @@ struct TaskQueue {
     std::deque<Task> m_tasks;
 };
 
-void add_task(entt::registry &registry, const entt::entity entity, const Task& task);
+void add_task(entt::registry &registry, const entt::entity entity, const Task &task);
 void update_tasks(entt::registry &registry);
 void tasks_from_input(entt::registry &registry);
 

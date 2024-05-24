@@ -12,14 +12,14 @@
 
 namespace stratgame {
 void update_transform(entt::registry &registry) {
-    auto view = registry.view<const Movement, Transform>();
-    for (auto entity : view) {
-        const auto &movement = view.get<Movement>(entity);
-        auto &transform = view.get<Transform>(entity);
-
+    auto view = registry.view<Movement, Transform>();
+    for (auto&& [entity, movement, transform] : view.each()) {
         transform.position = Vector3Add(transform.position, movement.velocity);
+        movement.velocity = {0.,0.,0.};
     }
 }
+
+void update_context(entt::registry &registry) {}
 
 void handle_input(entt::registry &registry) {
     handle_mouse_input(registry);

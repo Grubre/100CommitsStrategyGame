@@ -8,7 +8,7 @@
 
 namespace stratgame {
 
-void add_task(entt::registry &registry, const entt::entity entity, const Task& task) {
+void add_task(entt::registry &registry, const entt::entity entity, const Task &task) {
     if (!registry.all_of<TaskQueue>(entity)) {
         registry.emplace<TaskQueue>(entity);
     }
@@ -18,8 +18,12 @@ void add_task(entt::registry &registry, const entt::entity entity, const Task& t
     registry.patch<TaskQueue>(entity, [&](TaskQueue &task_queue) { task_queue.set_new_task(task); });
 }
 
-auto handle_walk_to_task(Transform &transform, const WalkToTask &task, float delta) -> TaskStatus {
+auto handle_walk_to_task(entt::registry &registry, entt::entity entity, const WalkToTask &task) -> TaskStatus {
     const auto target = to_vec3(task.target);
+    const auto delta = GetFrameTime();
+
+    const auto &transform = registry.get<Transform>(entity);
+    auto &movement = registry.get<Movement>(entity);
 
     const auto diff_to_target = Vector3Subtract(target, transform.position);
     const auto diff_to_target2d = to_vec2(diff_to_target);
@@ -29,11 +33,10 @@ auto handle_walk_to_task(Transform &transform, const WalkToTask &task, float del
 
     if (Vector2Length(diff_to_target2d) < movement_delta_scalar) {
         std::println("Reached target!");
-        transform.position = target;
         return TaskStatus::Finished;
-    } else {
-        transform.position = Vector3Add(transform.position, {movement_delta.x, 0, movement_delta.y});
     }
+
+    movement.velocity = to_vec3(movement_delta);
 
     return TaskStatus::InProgress;
 }
@@ -44,7 +47,6 @@ void update_tasks(entt::registry &registry) {
     const auto delta = GetFrameTime();
 
     for (auto minion : minions) {
-        auto &transform = registry.get<stratgame::Transform>(minion);
         auto &task_queue = registry.get<TaskQueue>(minion);
 
         if (task_queue.is_empty()) {
@@ -56,13 +58,13 @@ void update_tasks(entt::registry &registry) {
         TaskStatus status = TaskStatus::InProgress;
         std::visit(
             overloaded{
-				[&](const WalkToTask &task) { status = handle_walk_to_task(transform, task, delta); },
-			},
-			task);
+                [&](const WalkToTask &task) { status = handle_walk_to_task(registry, minion, task); },
+            },
+            task);
 
         if (status == TaskStatus::Finished) {
-			task_queue.remove_task();
-		}
+            task_queue.remove_task();
+        }
     }
 }
 

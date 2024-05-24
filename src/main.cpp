@@ -48,6 +48,8 @@ auto main() -> int {
     rlImGuiSetup(true);
 
     while (!WindowShouldClose()) {
+        stratgame::update_context(registry);
+
         auto &camera = registry.get<stratgame::Camera>(camera_entity);
         // ======================================
         // UPDATE SYSTEMS

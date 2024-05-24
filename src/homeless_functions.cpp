@@ -28,6 +28,7 @@ auto setup_entt() -> entt::registry {
     // NOTE: Minions must have Transform, BaseStats and ModelComponent
     registry.on_construct<stratgame::Minion>().connect<[](entt::registry &registry, entt::entity entity) {
         registry.emplace<stratgame::Transform>(entity);
+        registry.emplace<stratgame::Movement>(entity);
         registry.emplace<stratgame::BaseStats>(entity);
         registry.emplace<stratgame::Selectable>(entity);
 
