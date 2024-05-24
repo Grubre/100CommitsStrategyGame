@@ -6,17 +6,14 @@
 #include <variant>
 
 namespace stratgame {
+enum class TaskStatus { InProgress, Finished };
+
 struct WalkToTask {
     Vector2 target;
     float speed;
 };
 
 using Task = std::variant<WalkToTask>;
-
-enum class TaskStatus {
-    InProgress,
-    Finished
-};
 
 [[nodiscard]] auto handle_walk_to_task(Transform &transform, const WalkToTask &task, float delta) -> TaskStatus;
 
@@ -32,9 +29,9 @@ struct TaskQueue {
         m_tasks.push_front(task);
     }
 
-    [[nodiscard]] auto tasks() const -> const std::deque<Task> & { return m_tasks; }
-    [[nodiscard]] auto current_task() const -> const Task & { return m_tasks[0]; }
-    [[nodiscard]] auto empty() const -> bool { return m_tasks.empty(); }
+    [[nodiscard]] auto get_tasks() const -> const std::deque<Task> & { return m_tasks; }
+    [[nodiscard]] auto get_current_task() const -> const Task & { return m_tasks[0]; }
+    [[nodiscard]] auto is_empty() const -> bool { return m_tasks.empty(); }
 
   private:
     std::deque<Task> m_tasks;

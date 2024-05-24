@@ -47,11 +47,11 @@ void update_tasks(entt::registry &registry) {
         auto &transform = registry.get<stratgame::Transform>(minion);
         auto &task_queue = registry.get<TaskQueue>(minion);
 
-        if (task_queue.empty()) {
+        if (task_queue.is_empty()) {
             continue;
         }
 
-        const auto &task = task_queue.current_task();
+        const auto &task = task_queue.get_current_task();
 
         TaskStatus status = TaskStatus::InProgress;
         std::visit(
