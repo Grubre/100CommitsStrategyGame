@@ -68,7 +68,8 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/SimplexNoise/SimplexNoise.cpp")
         INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/SimplexNoise/include"
     )
 
-    target_link_libraries(SimplexNoise PRIVATE project_options project_warnings)
+    # Only link project_options, NOT project_warnings to avoid warnings from external code
+    target_link_libraries(SimplexNoise PRIVATE project_options)
 else()
     message(FATAL_ERROR "SimplexNoise submodule not found. Run: git submodule update --init --recursive")
 endif()
@@ -122,6 +123,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui.cpp" AND
     )
 
     target_link_libraries(imgui PUBLIC raylib)
+    # Only link project_options, NOT project_warnings to avoid warnings from external code
     target_link_libraries(imgui PRIVATE project_options)
 else()
     message(FATAL_ERROR "ImGui submodules not found. Run: git submodule update --init --recursive")
