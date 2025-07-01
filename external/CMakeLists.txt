@@ -1,44 +1,150 @@
+# External Dependencies
+
+include(FetchContent)
+set(FETCHCONTENT_QUIET OFF)
+
+# =============================================================================
+# RAYLIB
+# =============================================================================
+
 set(RAYLIB_VERSION 5.0)
 find_package(raylib ${RAYLIB_VERSION} QUIET)
-if (NOT raylib_FOUND)
-    include(FetchContent)
+
+if(NOT raylib_FOUND)
+    message(STATUS "Fetching Raylib ${RAYLIB_VERSION}...")
+
     FetchContent_Declare(
         raylib
-        URL https://github.com/raysan5/raylib/archive/refs/tags/${RAYLIB_VERSION}.tar.gz
-        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+        GIT_REPOSITORY https://github.com/raysan5/raylib.git
+        GIT_TAG ${RAYLIB_VERSION}
+        GIT_SHALLOW TRUE
     )
-    FetchContent_GetProperties(raylib)
-    if (NOT raylib_POPULATED)
-        set(FETCHCONTENT_QUIET NO)
-        FetchContent_Populate(raylib)
-        set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-        add_subdirectory(${raylib_SOURCE_DIR} ${raylib_BINARY_DIR})
-    endif()
+
+    # Configure raylib
+    set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(BUILD_GAMES OFF CACHE BOOL "" FORCE)
+
+    FetchContent_MakeAvailable(raylib)
+
+    # Suppress warnings from raylib
+    set_target_properties(raylib PROPERTIES
+        INTERFACE_SYSTEM_INCLUDE_DIRECTORIES $<TARGET_PROPERTY:raylib,INTERFACE_INCLUDE_DIRECTORIES>
+    )
 endif()
 
-# this magic formula silences warnings from raylib
-set_target_properties(raylib PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES $<TARGET_PROPERTY:raylib,INTERFACE_INCLUDE_DIRECTORIES>)
+# =============================================================================
+# ENTT
+# =============================================================================
 
-add_library(Entt INTERFACE)
-target_include_directories(Entt INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entt/include)
-set_target_properties(Entt PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES $<TARGET_PROPERTY:Entt,INTERFACE_INCLUDE_DIRECTORIES>)
-# Turns off warnings for Entt /\
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/entt/include/entt.hpp")
+    add_library(EnTT INTERFACE)
+    target_include_directories(EnTT INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/entt/include")
 
+    # Suppress warnings
+    set_target_properties(EnTT PROPERTIES
+        INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/entt/include"
+    )
 
-add_library(Simplex STATIC ${CMAKE_CURRENT_SOURCE_DIR}/SimplexNoise/SimplexNoise.cpp)
-target_include_directories(Simplex PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/SimplexNoise/include)
-set_target_properties(Simplex PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES $<TARGET_PROPERTY:Simplex,INTERFACE_INCLUDE_DIRECTORIES>)
+    add_library(EnTT::EnTT ALIAS EnTT)
+else()
+    message(FATAL_ERROR "EnTT submodule not found. Run: git submodule update --init --recursive")
+endif()
 
+# =============================================================================
+# SIMPLEX NOISE
+# =============================================================================
 
-add_library(Raygui INTERFACE)
-target_include_directories(Raygui INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/raygui/include)
-set_target_properties(Raygui PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES $<TARGET_PROPERTY:Raygui,INTERFACE_INCLUDE_DIRECTORIES>)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/SimplexNoise/SimplexNoise.cpp")
+    add_library(SimplexNoise STATIC
+        "${CMAKE_CURRENT_SOURCE_DIR}/SimplexNoise/SimplexNoise.cpp"
+    )
 
+    target_include_directories(SimplexNoise PUBLIC
+        "${CMAKE_CURRENT_SOURCE_DIR}/SimplexNoise/include"
+    )
 
-# imgui
-set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/imgui)
-set(IMGUI_RAYLIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/rlimgui)
-add_library(Imgui STATIC ${IMGUI_DIR}/imgui.cpp ${IMGUI_DIR}/imgui_demo.cpp ${IMGUI_DIR}/imgui_draw.cpp ${IMGUI_DIR}/imgui_tables.cpp ${IMGUI_DIR}/imgui_widgets.cpp ${IMGUI_RAYLIB_DIR}/rlImGui.cpp)
-target_link_libraries(Imgui raylib)
-target_include_directories(Imgui PUBLIC ${IMGUI_DIR} ${IMGUI_RAYLIB_DIR})
-set_target_properties(Imgui PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES $<TARGET_PROPERTY:Imgui,INTERFACE_INCLUDE_DIRECTORIES>)
+    # Suppress warnings
+    set_target_properties(SimplexNoise PROPERTIES
+        INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/SimplexNoise/include"
+    )
+
+    target_link_libraries(SimplexNoise PRIVATE project_options project_warnings)
+else()
+    message(FATAL_ERROR "SimplexNoise submodule not found. Run: git submodule update --init --recursive")
+endif()
+
+# =============================================================================
+# RAYGUI
+# =============================================================================
+
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/raygui/include/raygui.h")
+    add_library(raygui INTERFACE)
+
+    target_include_directories(raygui INTERFACE
+        "${CMAKE_CURRENT_SOURCE_DIR}/raygui/include"
+    )
+
+    # Suppress warnings
+    set_target_properties(raygui PROPERTIES
+        INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/raygui/include"
+    )
+
+    target_link_libraries(raygui INTERFACE raylib)
+else()
+    message(FATAL_ERROR "Raygui submodule not found. Run: git submodule update --init --recursive")
+endif()
+
+# =============================================================================
+# IMGUI
+# =============================================================================
+
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui.cpp" AND
+   EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/rlimgui/rlImGui.cpp")
+
+    add_library(imgui STATIC
+        "${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_demo.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_draw.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_tables.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_widgets.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/rlimgui/rlImGui.cpp"
+    )
+
+    target_include_directories(imgui PUBLIC
+        "${CMAKE_CURRENT_SOURCE_DIR}/imgui"
+        "${CMAKE_CURRENT_SOURCE_DIR}/rlimgui"
+    )
+
+    # Suppress warnings
+    set_target_properties(imgui PROPERTIES
+        INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
+        "${CMAKE_CURRENT_SOURCE_DIR}/imgui;${CMAKE_CURRENT_SOURCE_DIR}/rlimgui"
+    )
+
+    target_link_libraries(imgui PUBLIC raylib)
+    target_link_libraries(imgui PRIVATE project_options)
+else()
+    message(FATAL_ERROR "ImGui submodules not found. Run: git submodule update --init --recursive")
+endif()
+
+# =============================================================================
+# ALIASES FOR COMPATIBILITY
+# =============================================================================
+
+if(NOT TARGET Entt)
+    add_library(Entt ALIAS EnTT)
+endif()
+
+if(NOT TARGET Simplex)
+    add_library(Simplex ALIAS SimplexNoise)
+endif()
+
+if(NOT TARGET Raygui)
+    add_library(Raygui ALIAS raygui)
+endif()
+
+if(NOT TARGET Imgui)
+    add_library(Imgui ALIAS imgui)
+endif()
+
+message(STATUS "External dependencies configured")
